@@ -48,12 +48,12 @@ Cách tạo branch sẽ là các tiền tố được tách từ các branch c�
 
 Từ những branch đó chúng mình sẽ có những tiền tố sau:
 
-1. Tiền tố **`bug/<id-trello>-<tên-dev>`** sẽ tách từ branch **`Dev`** để sửa lỗi.
-2. Tiền tố **`feature/<id-trello>-<tên-dev>`** sẽ tách từ branch **`Dev`** để phát triển tính năng mới.
-3. Tiền tố **`hotfix/<id-trello>-<tên-dev>`** sẽ tách từ branch **`Pro`** để khắc phục sự cố gấp.
-4. Tiền tố **`refactor/<id-trello>-<tên-dev>`** sẽ tách từ branch **`Dev`** để tái cấu trúc code.
-5. Tiền tố **`docs/<id-trello>-<tên-dev>`** sẽ tách từ branch **`Dev`** để chỉnh sửa/thêm tài liệu.
-6. Tiền tố **`perf/<id-trello>-<tên-dev>`** sẽ tách từ branch **`Dev`** để tối ưu hiệu suất.
+1. Tiền tố **`bug/<id-jira>-<tên-dev>`** sẽ tách từ branch **`Dev`** để sửa lỗi.
+2. Tiền tố **`feature/<id-jira>-<tên-dev>`** sẽ tách từ branch **`Dev`** để phát triển tính năng mới.
+3. Tiền tố **`hotfix/<id-jira>-<tên-dev>`** sẽ tách từ branch **`Pro`** để khắc phục sự cố gấp.
+4. Tiền tố **`refactor/<id-jira>-<tên-dev>`** sẽ tách từ branch **`Dev`** để tái cấu trúc code.
+5. Tiền tố **`docs/<id-jira>-<tên-dev>`** sẽ tách từ branch **`Dev`** để chỉnh sửa/thêm tài liệu.
+6. Tiền tố **`perf/<id-jira>-<tên-dev>`** sẽ tách từ branch **`Dev`** để tối ưu hiệu suất.
 
 ## [**Code**](#code-)
 
