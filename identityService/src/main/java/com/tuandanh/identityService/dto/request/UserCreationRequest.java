@@ -1,5 +1,7 @@
 package com.tuandanh.identityService.dto.request;
 
+import com.tuandanh.identityService.validator.DobConstraint;
+import com.tuandanh.identityService.validator.PasswordConstraint;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -18,10 +20,7 @@ public class UserCreationRequest {
 
     @NotBlank(message = "INVALID_PASSWORD")
     @Size(min = 8, max = 50, message = "INVALID_PASSWORD")
-    @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,50}$",
-            message = "INVALID_PASSWORD"
-    )
+    @PasswordConstraint(message = "INVALID_PASSWORD")
     String password;
 
     @NotBlank(message = "FIRSTNAME_INVALID")
@@ -32,7 +31,7 @@ public class UserCreationRequest {
     @Size(max = 30, message = "LASTNAME_INVALID")
     String lastName;
 
-    @Past(message = "Date of birth must be in the past")// fix later
+    @DobConstraint(min = 18, message = "DOB_INVALID")
     LocalDate dob;
 
     @NotBlank(message = "EMAIL_INVALID")
