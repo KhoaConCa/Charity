@@ -1,20 +1,31 @@
 package com.tuandanh.identityService.service;
 
+import com.tuandanh.identityService.constant.PredefinedRole;
+import com.tuandanh.identityService.dto.request.ChangePasswordRequest;
 import com.tuandanh.identityService.dto.request.UserCreationRequest;
 import com.tuandanh.identityService.dto.request.UserUpdateRequest;
+import com.tuandanh.identityService.dto.response.ChangePasswordResponse;
 import com.tuandanh.identityService.dto.response.UserResponse;
+import com.tuandanh.identityService.entity.Role;
 import com.tuandanh.identityService.entity.User;
 import com.tuandanh.identityService.exception.AppException;
 import com.tuandanh.identityService.exception.ErrorCode;
 import com.tuandanh.identityService.mapper.UserMapper;
+import com.tuandanh.identityService.repository.RoleRepository;
 import com.tuandanh.identityService.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -22,19 +33,25 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService {
     UserRepository userRepository;
+    RoleRepository roleRepository;
     UserMapper userMapper;
-    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+    PasswordEncoder passwordEncoder;
 
-    public UserResponse createUser(UserCreationRequest request){
-        if (userRepository.existsByUsername(request.getUsername()))
-            throw new AppException(ErrorCode.USER_EXISTED);
+    public UserResponse createUser(UserCreationRequest request) {
+//        if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
 
         User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
+        HashSet<Role> roles = new HashSet<>();
+        roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
+
+        user.setRoles(roles);
+
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or returnObject.username == authentication.name")
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -42,23 +59,71 @@ public class UserService {
         userMapper.updateUser(user, request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
+        var roles = roleRepository.findAllById(request.getRoles());
+        user.setRoles(new HashSet<>(roles));
+
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
+    @PreAuthorize("returnObject.username == authentication.name")
+    public ChangePasswordResponse changePassword(String userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.INVALID_OLD_PASSWORD);
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return ChangePasswordResponse.builder()
+                .success(true)
+                .build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(String userId){
         userRepository.deleteById(userId);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers(){
-        return userRepository.findAll().stream()
-                .map(userMapper::toUserResponse).toList();
+        LocalDateTime now = LocalDateTime.now();
+
+        List<User> users = userRepository.findAll().stream()
+                .peek(user -> {
+                    if (user.getLastActiveAt() == null || Duration.between(user.getLastActiveAt(), now).toMinutes() > 1) {
+                        user.setLastActiveAt(now);
+                    }
+                })
+                .toList();
+
+        // Lưu lại các thay đổi vào database
+        userRepository.saveAll(users);
+
+        return users.stream()
+                .map(userMapper::toUserResponse)
+                .toList();
     }
 
+    public UserResponse getMyInfo(){
+        var context = SecurityContextHolder.getContext();
+        String name = context.getAuthentication().getName();
+
+        User user = userRepository.findByUsername(name).orElseThrow(
+                () -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        return userMapper.toUserResponse(user);
+    }
+
+    @PostAuthorize("returnObject.username == authentication.name or hasRole('ADMIN')")
     public UserResponse getUser(String id){
         return userMapper.toUserResponse(userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED)));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse blockUser(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -73,6 +138,7 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public UserResponse unblockUser(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -87,3 +153,4 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 }
+

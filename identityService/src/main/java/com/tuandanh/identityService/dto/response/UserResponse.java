@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -20,4 +21,5 @@ public class UserResponse {
     String email;
     boolean blocked; // Shows if user is blocked
     LocalDateTime lastActiveAt; // Shows when the user was last active
+    Set<RoleResponse> roles;
 }

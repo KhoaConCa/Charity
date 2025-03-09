@@ -1,14 +1,18 @@
 package com.tuandanh.identityService.controller;
 
 import com.tuandanh.identityService.dto.ApiResponse;
+import com.tuandanh.identityService.dto.request.ChangePasswordRequest;
 import com.tuandanh.identityService.dto.request.UserCreationRequest;
 import com.tuandanh.identityService.dto.request.UserUpdateRequest;
+import com.tuandanh.identityService.dto.response.ChangePasswordResponse;
 import com.tuandanh.identityService.dto.response.UserResponse;
 import com.tuandanh.identityService.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,10 +24,19 @@ import java.util.List;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     UserService userService;
+
+    @GetMapping("/myInfo")
+    ApiResponse<UserResponse> getMyInfo(){
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getMyInfo())
+                .build();
+    }
 
     @PostMapping
     public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request){
+        log.info(request.toString());
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
                 .build();
@@ -69,6 +82,14 @@ public class UserController {
     public ApiResponse<UserResponse> unblockUser(@PathVariable String userId) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.unblockUser(userId))
+                .build();
+    }
+
+    @PutMapping("/{userId}/changepassword")
+    public ApiResponse<ChangePasswordResponse> changePassword(@PathVariable String userId,
+                                                              @RequestBody @Valid ChangePasswordRequest request){
+        return ApiResponse.<ChangePasswordResponse>builder()
+                .result(userService.changePassword(userId, request))
                 .build();
     }
 }

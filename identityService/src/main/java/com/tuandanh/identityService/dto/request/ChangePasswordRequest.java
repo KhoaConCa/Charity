@@ -1,5 +1,6 @@
 package com.tuandanh.identityService.dto.request;
 
+import com.tuandanh.identityService.validator.PasswordConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -10,11 +11,12 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AuthenticationRequest {
-    @NotBlank(message = "USERNAME_INVALID")
-    @Size(min = 3, max = 20, message = "USERNAME_INVALID")
-    String username;
+public class ChangePasswordRequest {
+    @NotBlank(message = "INVALID_PASSWORD")
+    String oldPassword;
 
     @NotBlank(message = "INVALID_PASSWORD")
-    String password;
+    @Size(min = 8, max = 50, message = "INVALID_PASSWORD")
+    @PasswordConstraint(message = "INVALID_PASSWORD")
+    String newPassword;
 }
