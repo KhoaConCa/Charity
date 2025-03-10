@@ -29,7 +29,7 @@ public class User {
     @Column(unique = true, nullable = true)
     String email;
     boolean isBlocked = false;
-    LocalDateTime lastActiveAt;
+//    LocalDateTime lastActiveAt;
 
     @ManyToMany
     Set<Role> roles;

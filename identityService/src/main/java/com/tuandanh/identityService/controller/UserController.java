@@ -5,6 +5,7 @@ import com.tuandanh.identityService.dto.request.ChangePasswordRequest;
 import com.tuandanh.identityService.dto.request.UserCreationRequest;
 import com.tuandanh.identityService.dto.request.UserUpdateRequest;
 import com.tuandanh.identityService.dto.response.ChangePasswordResponse;
+import com.tuandanh.identityService.dto.response.UserOnlineStatusResponse;
 import com.tuandanh.identityService.dto.response.UserResponse;
 import com.tuandanh.identityService.service.UserService;
 import jakarta.validation.Valid;
@@ -36,7 +37,6 @@ public class UserController {
 
     @PostMapping
     public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request){
-        log.info(request.toString());
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
                 .build();
@@ -90,6 +90,13 @@ public class UserController {
                                                               @RequestBody @Valid ChangePasswordRequest request){
         return ApiResponse.<ChangePasswordResponse>builder()
                 .result(userService.changePassword(userId, request))
+                .build();
+    }
+
+    @GetMapping("/{userId}/is-online")
+    public ApiResponse<UserOnlineStatusResponse> checkUserOnlineStatus(@PathVariable String userId){
+        return ApiResponse.<UserOnlineStatusResponse>builder()
+                .result(userService.isOnline(userId))
                 .build();
     }
 }

@@ -5,6 +5,7 @@ import com.tuandanh.identityService.dto.request.ChangePasswordRequest;
 import com.tuandanh.identityService.dto.request.UserCreationRequest;
 import com.tuandanh.identityService.dto.request.UserUpdateRequest;
 import com.tuandanh.identityService.dto.response.ChangePasswordResponse;
+import com.tuandanh.identityService.dto.response.UserOnlineStatusResponse;
 import com.tuandanh.identityService.dto.response.UserResponse;
 import com.tuandanh.identityService.entity.Role;
 import com.tuandanh.identityService.entity.User;
@@ -16,12 +17,15 @@ import com.tuandanh.identityService.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -36,6 +40,7 @@ public class UserService {
     RoleRepository roleRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
+    RedisTemplate<String, Object> redisTemplate;
 
     public UserResponse createUser(UserCreationRequest request) {
 //        if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
@@ -88,24 +93,34 @@ public class UserService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UserResponse> getUsers(){
-        LocalDateTime now = LocalDateTime.now();
-
-        List<User> users = userRepository.findAll().stream()
-                .peek(user -> {
-                    if (user.getLastActiveAt() == null || Duration.between(user.getLastActiveAt(), now).toMinutes() > 1) {
-                        user.setLastActiveAt(now);
-                    }
-                })
-                .toList();
-
-        // Lưu lại các thay đổi vào database
-        userRepository.saveAll(users);
-
-        return users.stream()
+    public List<UserResponse> getUsers() {
+        return userRepository.findAll().stream()
                 .map(userMapper::toUserResponse)
                 .toList();
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserOnlineStatusResponse isOnline(@PathVariable("id") String userId) {
+        Boolean isOnline = redisTemplate.hasKey("ONLINE_USER_" + userId);
+
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+
+        return UserOnlineStatusResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .isActive(Boolean.TRUE.equals(isOnline)) // isActive từ Redis
+                .build();
+    }
+
+
+//    private boolean isActive(Duration activeDuration, User user) {
+//        if (user.getLastActiveAt() == null) return false;
+//        return user.getLastActiveAt().isAfter(LocalDateTime.now().minus(activeDuration));
+//    }
+
 
     public UserResponse getMyInfo(){
         var context = SecurityContextHolder.getContext();

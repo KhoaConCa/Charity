@@ -20,6 +20,6 @@ public class UserResponse {
     LocalDate dob;
     String email;
     boolean blocked; // Shows if user is blocked
-    LocalDateTime lastActiveAt; // Shows when the user was last active
+//    LocalDateTime lastActiveAt; // Shows when the user was last active
     Set<RoleResponse> roles;
 }
