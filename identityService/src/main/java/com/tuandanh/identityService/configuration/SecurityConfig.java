@@ -37,7 +37,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         log.error("endpoint : " + PUBLIC_ENDPOINTS);
         httpSecurity.authorizeHttpRequests(request -> request
-                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()  // Các endpoint public
+                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS).permitAll()
+                .requestMatchers(("/ws/**")).permitAll()// Các endpoint public
                 .requestMatchers("/roles/**").hasRole("ADMIN")  // Chỉ admin mới có thể truy cập /roles/**
                 .requestMatchers("/permissions/**").hasRole("ADMIN")
                 .anyRequest().authenticated());  // Mọi request khác phải xác thực
