@@ -28,9 +28,15 @@ public class User {
 
     @Column(unique = true, nullable = true)
     String email;
+    boolean emailVerified = false;
     boolean isBlocked = false;
 //    LocalDateTime lastActiveAt;
+    String provider;
+    boolean twoFactorEnabled;
 
     @ManyToMany
     Set<Role> roles;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    Set<Device> devices;
 }

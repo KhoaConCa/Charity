@@ -25,7 +25,16 @@ public enum ErrorCode {
     UNAUTHENTICATED(1012, "User is unauthenticated", HttpStatus.UNAUTHORIZED),
     JWT_TOKEN_ERROR(1013, "Invalid or expired JWT token", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1014, "Unauthorized", HttpStatus.FORBIDDEN),
-    INVALID_OLD_PASSWORD(1015, "Old password is invalid", HttpStatus.BAD_REQUEST);
+    INVALID_OLD_PASSWORD(1015, "Old password is invalid", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_EXISTED(1016, "Email already exists", HttpStatus.NOT_FOUND),
+    MESSAGING_FAIL(1017, "Messaging failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    AUTHORIZED_HEADER_ERROR(1018, "Authorized Header error", HttpStatus.INTERNAL_SERVER_ERROR),
+    OTP_EXPIRED_OR_NOT_FOUND(1019, "OTP expired or not found", HttpStatus.BAD_REQUEST),
+    OTP_INVALID(1020, "OTP is invalid", HttpStatus.BAD_REQUEST),
+    OTP_ATTEMPT_LIMIT_EXCEEDED(1021, "OTP attempt limit exceeded", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(1022, "OTP expired", HttpStatus.BAD_REQUEST),
+    DISABLED_2FA(1023, "2FA is Disabled", HttpStatus.BAD_REQUEST),
+    ;
 
     private final int code;
     private final String message;

@@ -1,2 +1,13 @@
-package com.tuandanh.identityService.dto.response;public class SendOtpResponse {
+package com.tuandanh.identityService.dto.response;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class SendOtpResponse {
+    String result;
 }

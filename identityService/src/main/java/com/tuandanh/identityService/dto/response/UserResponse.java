@@ -21,5 +21,6 @@ public class UserResponse {
     String email;
     boolean blocked; // Shows if user is blocked
 //    LocalDateTime lastActiveAt; // Shows when the user was last active
+    String provider;
     Set<RoleResponse> roles;
 }
