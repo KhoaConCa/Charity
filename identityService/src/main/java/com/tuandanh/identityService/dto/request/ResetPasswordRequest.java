@@ -1,2 +1,14 @@
-package com.tuandanh.identityService.dto.request;public class ResetPasswordRequest {
+package com.tuandanh.identityService.dto.request;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class ResetPasswordRequest {
+    String token;
+    String newPassword;
 }
