@@ -2,6 +2,7 @@ package com.tuandanh.identityService.websocket;
 
 import com.tuandanh.identityService.entity.User;
 import com.tuandanh.identityService.repository.UserRepository;
+import com.tuandanh.identityService.service.redis.RedisService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -24,19 +25,18 @@ import java.util.Optional;
 
 @Component
 @Slf4j
-
 public class UserWebSocketHandler extends TextWebSocketHandler {
 
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final Key jwtKey;
+    private final RedisService redisService;
     private final UserRepository userRepository;
+    private final Key jwtKey;
 
-    public UserWebSocketHandler(RedisTemplate<String, Object> redisTemplate,
-                                @Value("${jwt.signerKey}") String signerKey, UserRepository userRepository) {
-        log.error("SAIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
-        this.redisTemplate = redisTemplate;
-        this.jwtKey = Keys.hmacShaKeyFor(signerKey.getBytes(StandardCharsets.UTF_8));
+    public UserWebSocketHandler(@Value("${jwt.signerKey}") String signerKey,
+                                RedisService redisService,
+                                UserRepository userRepository) {
+        this.redisService = redisService;
         this.userRepository = userRepository;
+        this.jwtKey = Keys.hmacShaKeyFor(signerKey.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
@@ -45,14 +45,14 @@ public class UserWebSocketHandler extends TextWebSocketHandler {
         String userId = validateTokenAndGetUserId(token);
 
         if (userId == null) {
-            System.out.println("Unauthorized WebSocket connection attempt.");
+            log.warn("Unauthorized WebSocket connection attempt. Token: {}", token);
             session.close(CloseStatus.NOT_ACCEPTABLE);
             return;
         }
 
-        // Set status online in Redis
-        redisTemplate.opsForValue().set("ONLINE_USER_" + userId, "true", Duration.ofMinutes(10));
-        System.out.println("User " + userId + " connected");
+        // Set user online using RedisService
+        redisService.setOnlineUser(userId);
+        log.info("User {} connected via WebSocket.", userId);
     }
 
     @Override
@@ -61,13 +61,15 @@ public class UserWebSocketHandler extends TextWebSocketHandler {
         String userId = validateTokenAndGetUserId(token);
 
         if (userId != null) {
-            redisTemplate.delete("ONLINE_USER_" + userId);
-            System.out.println("User " + userId + " disconnected");
+            redisService.removeOnlineUser(userId);
+            log.info("User {} disconnected from WebSocket.", userId);
+        } else {
+            log.warn("Failed to extract user ID on WebSocket disconnection. Token: {}", token);
         }
     }
 
     /**
-     * Parse query parameters safely.
+     * Extract query parameter from WebSocket URI.
      */
     private String getQueryParam(WebSocketSession session, String paramName) {
         URI uri = session.getUri();
@@ -90,37 +92,34 @@ public class UserWebSocketHandler extends TextWebSocketHandler {
     }
 
     /**
-     * Validate JWT token and extract userId.
+     * Validate JWT token and retrieve associated user ID from the database.
      */
     private String validateTokenAndGetUserId(String token) {
-        try {
-            if (token == null) {
-                return null;
-            }
+        if (token == null) {
+            log.warn("No token provided for WebSocket connection.");
+            return null;
+        }
 
-            // Bước 1: Parse token lấy username
+        try {
+            // Parse JWT and get claims
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(jwtKey)
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
 
-            String username = claims.getSubject(); // Đây là username
+            String username = claims.getSubject();
             if (username == null) {
+                log.warn("Token does not contain a valid subject (username).");
                 return null;
             }
 
-            // Bước 2: Truy vấn DB để lấy userId từ username
+            // Query user from DB
             Optional<User> optionalUser = userRepository.findByUsername(username);
-            if (optionalUser.isPresent()) {
-                User user = optionalUser.get();
-                return user.getId();
-            } else {
-                return null;
-            }
+            return optionalUser.map(User::getId).orElse(null);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to validate JWT token: {}", e.getMessage(), e);
             return null;
         }
     }

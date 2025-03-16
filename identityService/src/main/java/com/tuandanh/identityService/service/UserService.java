@@ -105,7 +105,7 @@ public class UserService {
 
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
 
         return UserOnlineStatusResponse.builder()
