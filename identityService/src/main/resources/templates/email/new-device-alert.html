@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Security Alert</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <!-- Header -->
+                <tr>
+                    <td style="background-color: #ff4d4f; padding: 20px; color: white; text-align: center; font-size: 24px; font-weight: bold;">
+                        ⚠️ Security Alert
+                    </td>
+                </tr>
+                <!-- Body -->
+                <tr>
+                    <td style="padding: 30px; color: #333333;">
+                        <h2 style="margin-top: 0;">New Device Login Detected</h2>
+                        <p>Hi,</p>
+                        <p>We detected a login attempt from a <b>new device</b> associated with your account:</p>
+                        <p style="background-color: #f8f8f8; padding: 15px; border-radius: 5px; font-size: 16px;">
+                            <b th:text="${device_info}">Thiết bị</b> <!-- OK -->
+                        </p>
+                        <p>If this was <b>you</b>, no further action is needed.</p>
+                        <p>If this <b>was not you</b>, please <a href="https://your-website.com/security" style="color: #ff4d4f; text-decoration: none;">secure your account immediately</a>.</p>
+                        <p style="margin-top: 30px;">Stay safe,<br><b>Your Security Team</b></p>
+                    </td>
+                </tr>
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color: #f0f0f0; padding: 15px; text-align: center; color: #777777; font-size: 12px;">
+                        You are receiving this email because of a security setting on your account.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
