@@ -5,6 +5,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/identityService/pom.xml" />
+        <option value="$PROJECT_DIR$/profileService/pom.xml" />
       </list>
     </option>
   </component>
