@@ -25,6 +25,23 @@ public class UserProfileService {
     UserProfileMapper userProfileMapper;
     S3Service s3Service;
 
+    public String updateAvatar(String profileId, MultipartFile avatarFile) throws IOException {
+        UserProfile userProfile = userProfileRepository.findById(profileId)
+                .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+
+        // Xóa avatar cũ nếu có
+        if (userProfile.getAvatarUrl() != null) {
+            s3Service.deleteAvatar(userProfile.getAvatarUrl());
+        }
+
+        // Upload avatar mới
+        String newAvatarUrl = s3Service.uploadAvatar(avatarFile);
+        userProfile.setAvatarUrl(newAvatarUrl);
+        userProfileRepository.save(userProfile);
+
+        return newAvatarUrl;
+    }
+
     public ProfileResponse createProfile(ProfileCreationRequest profileCreationRequest, MultipartFile avatarFile)
             throws IOException {
         String avatarUrl = s3Service.uploadAvatar(avatarFile);
@@ -36,15 +53,30 @@ public class UserProfileService {
     }
 
 //    @PreAuthorize("returnObject.userId == authentication.name or hasRole('ADMIN')")
-    public ProfileResponse updateProfile(String profileId, ProfileUpdateRequest request) {
-        UserProfile userProfile = userProfileRepository.findById(profileId)
-                        .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+public ProfileResponse updateProfile(String profileId, ProfileUpdateRequest request, MultipartFile avatarFile)
+        throws IOException {
 
-        userProfileMapper.updateUserProfile(userProfile, request);
-        userProfile = userProfileRepository.save(userProfile);
+    UserProfile userProfile = userProfileRepository.findById(profileId)
+            .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
 
-        return userProfileMapper.toProfileResponse(userProfile);
+    // Nếu có avatar mới, xóa ảnh cũ và upload ảnh mới lên S3
+    if (avatarFile != null && !avatarFile.isEmpty()) {
+        // Xóa avatar cũ nếu có
+        if (userProfile.getAvatarUrl() != null) {
+            s3Service.deleteAvatar(userProfile.getAvatarUrl());
+        }
+
+        // Upload avatar mới
+        String newAvatarUrl = s3Service.uploadAvatar(avatarFile);
+        userProfile.setAvatarUrl(newAvatarUrl);
     }
+
+    // Cập nhật các thông tin khác từ request
+    userProfileMapper.updateUserProfile(userProfile, request);
+    userProfile = userProfileRepository.save(userProfile);
+
+    return userProfileMapper.toProfileResponse(userProfile);
+}
 
 //    @PreAuthorize("hasRole('ADMIN') or @securityService.isOwner(#userId)")
     public void deleteProfile(String profileId) {

@@ -33,16 +33,31 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-            redirect-uri: ${GOOGLE_REDIRECT_URI:{baseUrl}/oauth2/callback/{registrationId}}
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
             scope:
               - email
               - profile
+
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            redirect-uri: ${FACEBOOK_REDIRECT_URI}
+            scope:
+              - email
+              - public_profile
+
         provider:
           google:
             authorization-uri: ${GOOGLE_AUTH_URI:https://accounts.google.com/o/oauth2/v2/auth}
             token-uri: ${GOOGLE_TOKEN_URI:https://oauth2.googleapis.com/token}
             user-info-uri: ${GOOGLE_USER_INFO_URI:https://www.googleapis.com/oauth2/v3/userinfo}
             user-name-attribute: ${GOOGLE_USER_NAME_ATTRIBUTE:sub}
+
+          facebook:
+            authorization-uri: ${FACEBOOK_AUTH_URI:https://www.facebook.com/v18.0/dialog/oauth}
+            token-uri: ${FACEBOOK_TOKEN_URI:https://graph.facebook.com/v18.0/oauth/access_token}
+            user-info-uri: ${FACEBOOK_USER_INFO_URI:https://graph.facebook.com/me?fields=id,name,email}
+
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -71,3 +86,5 @@ openapi:
   server:
     url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
+
+

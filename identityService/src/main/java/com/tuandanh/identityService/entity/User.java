@@ -34,7 +34,7 @@ public class User {
     String provider;
     boolean twoFactorEnabled;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     Set<Role> roles;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

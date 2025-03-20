@@ -49,4 +49,15 @@ public class S3Service {
         // Return public URL
         return "https://" + bucketName + ".s3.amazonaws.com/" + fileName;
     }
+
+    public void deleteAvatar(String avatarUrl) {
+        // Lấy tên file từ URL
+        String fileName = avatarUrl.substring(avatarUrl.lastIndexOf("/") + 1);
+
+        s3Client.deleteObject(builder -> builder
+                .bucket(bucketName)
+                .key(fileName)
+                .build());
+    }
+
 }
