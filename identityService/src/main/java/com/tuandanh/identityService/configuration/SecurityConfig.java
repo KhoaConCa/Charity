@@ -66,6 +66,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         log.error("endpoint : " + String.join(", ", PUBLIC_ENDPOINTS2));
+
+
         httpSecurity.authorizeHttpRequests(request -> request
                 .requestMatchers(PUBLIC_ENDPOINTS2).permitAll()
                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS1).permitAll()
@@ -76,6 +78,7 @@ public class SecurityConfig {
 
         // Cấu hình OAuth2 Login
         httpSecurity.oauth2Login(oauth2 -> oauth2
+                .loginPage("/oauth2/authorization/google")
                 .successHandler(customOAuth2SuccessHandler) // Xử lý khi login thành công
                 .failureUrl("/oauth2/failure") // Xử lý khi thất bại
                 .userInfoEndpoint(userInfo -> userInfo

@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-    @Component
-    @RequiredArgsConstructor
-    public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
+@Component
+@RequiredArgsConstructor
+public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
-        private final AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override

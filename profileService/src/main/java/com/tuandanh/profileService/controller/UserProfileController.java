@@ -22,6 +22,7 @@ import java.io.IOException;
 public class UserProfileController {
     UserProfileService userProfileService;
 
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<ProfileResponse> createProfile(
             @RequestPart("profile") @Valid ProfileCreationRequest profileCreationRequest,
@@ -34,13 +35,28 @@ public class UserProfileController {
                 .build();
     }
 
-    @PutMapping("/{profileId}")
-    public ApiResponse<ProfileResponse> updateProfile(@PathVariable String profileId
-            ,@RequestBody @Valid ProfileUpdateRequest profileUpdateRequest){
-        ProfileResponse profileResponse = userProfileService.updateProfile(profileId, profileUpdateRequest);
+    @PutMapping(value = "/{profileId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ProfileResponse> updateProfile(
+            @PathVariable String profileId,
+            @RequestPart("profile") @Valid ProfileUpdateRequest profileUpdateRequest,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) throws IOException {
+
+        ProfileResponse profileResponse = userProfileService.updateProfile(profileId, profileUpdateRequest, avatarFile);
 
         return ApiResponse.<ProfileResponse>builder()
                 .result(profileResponse)
+                .build();
+    }
+
+    @PutMapping("/{profileId}/avatar")
+    public ApiResponse<String> updateAvatar(
+            @PathVariable String profileId,
+            @RequestPart("avatar") MultipartFile avatarFile) throws IOException {
+
+        String newAvatarUrl = userProfileService.updateAvatar(profileId, avatarFile);
+
+        return ApiResponse.<String>builder()
+                .result(newAvatarUrl)
                 .build();
     }
 
