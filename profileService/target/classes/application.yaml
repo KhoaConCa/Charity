@@ -1,0 +1,17 @@
+server:
+  port: 8081
+  servlet :
+    context-path: /profile
+
+spring:
+  neo4j:
+    uri: bolt://localhost:7687
+    authentication:
+      username: neo4j
+      password: loveHA13
+
+aws3:
+  access_key : AKIAU6VTTAOLZ5C6WXE2
+  secret_key : 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
+  bucket_name : tuandanh-profile-avatars
+  region : us-east-1
