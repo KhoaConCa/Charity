@@ -415,6 +415,8 @@ public class AuthenticationService {
         // 6. Nếu không cần OTP => sinh token và hoàn tất
         String token = generateToken(user);
 
+        log.error(SIGNER_KEY);
+
         return AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
