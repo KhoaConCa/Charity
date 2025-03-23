@@ -36,6 +36,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
+
     @Value("${jwt.signerKey}")
     private String signerKey;
 
