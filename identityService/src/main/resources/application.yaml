@@ -1,0 +1,90 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/identity}
+
+spring:
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false # tắt cache để test
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/identity_service}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:true}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: ${GOOGLE_REDIRECT_URI}
+            scope:
+              - email
+              - profile
+
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID}
+            client-secret: ${FACEBOOK_CLIENT_SECRET}
+            redirect-uri: ${FACEBOOK_REDIRECT_URI}
+            scope:
+              - email
+              - public_profile
+
+        provider:
+          google:
+            authorization-uri: ${GOOGLE_AUTH_URI:https://accounts.google.com/o/oauth2/v2/auth}
+            token-uri: ${GOOGLE_TOKEN_URI:https://oauth2.googleapis.com/token}
+            user-info-uri: ${GOOGLE_USER_INFO_URI:https://www.googleapis.com/oauth2/v3/userinfo}
+            user-name-attribute: ${GOOGLE_USER_NAME_ATTRIBUTE:sub}
+
+          facebook:
+            authorization-uri: ${FACEBOOK_AUTH_URI:https://www.facebook.com/v18.0/dialog/oauth}
+            token-uri: ${FACEBOOK_TOKEN_URI:https://graph.facebook.com/v18.0/oauth/access_token}
+            user-info-uri: ${FACEBOOK_USER_INFO_URI:https://graph.facebook.com/me?fields=id,name,email}
+
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
+
+jwt:
+  signerKey: ${JWT_SIGNER_KEY}
+  valid-duration: ${JWT_VALID_DURATION:3600} # in second
+  refreshable-duration: ${JWT_REFRESHABLE_DURATION:36000} # in seconds
+
+openapi:
+  title: ${OPENAPI_TITLE:Charity Social Media Document}
+  description: ${OPENAPI_DESCRIPTION:API documentation for Charity Social Media}
+  version: ${OPENAPI_VERSION:1.0.0}
+  license:
+    name: ${OPENAPI_LICENSE_NAME:API License}
+    url: ${OPENAPI_LICENSE_URL:https://www.facebook.com/nguyentuan.danh.167/}
+  server:
+    url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
+    description: ${OPENAPI_SERVER_DESCRIPTION:server test}
+
+
