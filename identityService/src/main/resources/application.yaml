@@ -6,7 +6,7 @@ server:
 spring:
   thymeleaf:
     prefix: classpath:/templates/
-    suffix: .html
+    suffix: .html.env
     mode: HTML
     encoding: UTF-8
     cache: false # tắt cache để test

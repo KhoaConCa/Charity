@@ -54,6 +54,7 @@ public class AuthenticationService {
     EmailService emailService;
     PasswordEncoder passwordEncoder;
     DeviceRepository deviceRepository;
+
     HttpServletRequest httpServletRequest;
 
     private static final Duration OTP_EXPIRATION = Duration.ofMinutes(5); // 5 minutes TTL
@@ -413,6 +414,8 @@ public class AuthenticationService {
 
         // 6. Nếu không cần OTP => sinh token và hoàn tất
         String token = generateToken(user);
+
+        log.error(SIGNER_KEY);
 
         return AuthenticationResponse.builder()
                 .token(token)
