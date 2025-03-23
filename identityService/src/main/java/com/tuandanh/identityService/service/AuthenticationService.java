@@ -54,6 +54,7 @@ public class AuthenticationService {
     EmailService emailService;
     PasswordEncoder passwordEncoder;
     DeviceRepository deviceRepository;
+
     HttpServletRequest httpServletRequest;
 
     private static final Duration OTP_EXPIRATION = Duration.ofMinutes(5); // 5 minutes TTL
