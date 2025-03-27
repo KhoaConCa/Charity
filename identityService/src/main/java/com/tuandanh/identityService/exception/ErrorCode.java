@@ -34,6 +34,8 @@ public enum ErrorCode {
     OTP_ATTEMPT_LIMIT_EXCEEDED(1021, "OTP attempt limit exceeded", HttpStatus.BAD_REQUEST),
     OTP_EXPIRED(1022, "OTP expired", HttpStatus.BAD_REQUEST),
     DISABLED_2FA(1023, "2FA is Disabled", HttpStatus.BAD_REQUEST),
+    OTP_REQUEST_LIMIT_EXCEEDED(1024, "OTP request limit exceeded", HttpStatus.BAD_REQUEST),
+    OTP_REQUEST_TOO_FREQUENT(1025, "OTP request too frequent", HttpStatus.BAD_REQUEST),
     ;
 
     private final int code;

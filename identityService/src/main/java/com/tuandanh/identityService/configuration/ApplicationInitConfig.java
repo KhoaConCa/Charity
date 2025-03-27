@@ -52,6 +52,7 @@ public class ApplicationInitConfig {
                 User user = User.builder()
                         .username(ADMIN_USER_NAME)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
+                        .email("nguyentuandanhk15@siu.edu.vn")
                         .roles(roles)
                         .build();
 

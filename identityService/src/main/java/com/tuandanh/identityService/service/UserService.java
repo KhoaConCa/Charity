@@ -11,9 +11,11 @@ import com.tuandanh.identityService.entity.Role;
 import com.tuandanh.identityService.entity.User;
 import com.tuandanh.identityService.exception.AppException;
 import com.tuandanh.identityService.exception.ErrorCode;
+import com.tuandanh.identityService.mapper.ProfleMapper;
 import com.tuandanh.identityService.mapper.UserMapper;
 import com.tuandanh.identityService.repository.RoleRepository;
 import com.tuandanh.identityService.repository.UserRepository;
+import com.tuandanh.identityService.repository.httpclient.ProfileClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -26,6 +28,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -41,6 +45,9 @@ public class UserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     RedisTemplate<String, Object> redisTemplate;
+    ProfileClient profileClient;
+    ProfleMapper profleMapper;
+
 
     public UserResponse createUser(UserCreationRequest request) {
 //        if (userRepository.existsByUsername(request.getUsername())) throw new AppException(ErrorCode.USER_EXISTED);
@@ -52,8 +59,19 @@ public class UserService {
         roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
 
         user.setRoles(roles);
+        user = userRepository.save(user);
 
-        return userMapper.toUserResponse(userRepository.save(user));
+        var profileRequest = profleMapper.toProfileCreationRequest(request);
+        profileRequest.setUserId(user.getId());
+
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes)
+                RequestContextHolder.getRequestAttributes();
+
+        var authHeader = servletRequestAttributes.getRequest().getHeader("Authorization");
+
+        profileClient.createProfile(authHeader, profileRequest);
+
+        return userMapper.toUserResponse(user);
     }
 
     @PreAuthorize("hasRole('ADMIN') or returnObject.username == authentication.name")
