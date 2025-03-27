@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -128,6 +129,22 @@ public class AuthenticationService {
                     .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         }
 
+        String email = user.getEmail();
+
+        // 1️⃣ Kiểm tra xem user có gửi OTP trong vòng 30 giây qua không (rate limit)
+        if (redisService.isOtpRateLimited(email)) {
+            throw new AppException(ErrorCode.OTP_REQUEST_TOO_FREQUENT); // Quá nhanh, đợi thêm
+        }
+
+        // 2️⃣ Kiểm tra xem user có gửi OTP quá số lần cho phép trong 10 phút không
+        if (redisService.isOtpRequestLimitExceeded(email)) {
+            throw new AppException(ErrorCode.OTP_REQUEST_LIMIT_EXCEEDED); // Quá nhiều yêu cầu
+        }
+
+        // 3️⃣ Nếu hợp lệ, tăng số lần gửi OTP và đặt rate limit
+        redisService.increaseOtpRequestCount(email);
+        redisService.setOtpRateLimit(email);
+
         SendEmailRequest verifyEmailRequest = new SendEmailRequest(user.getEmail());
 
         String otp = generateOtp();
@@ -176,6 +193,17 @@ public class AuthenticationService {
         // 5. Nếu đúng thì reset số lần sai và xóa OTP
         redisService.resetOtpAttempts(email);
         redisService.deleteToken(email, TokenType.TWO_FACTOR);
+
+        // Cập nhập thiết bị thành đã xác thực otp
+
+        String deviceInfo = getDeviceInfo(httpServletRequest);
+        Device device = deviceRepository.findByUserAndDeviceInfo(user, deviceInfo);
+
+        if (device != null) {
+            device.setOtpVerified(true);  // Đánh dấu đã xác thực OTP
+            device.setLastUsedAt(LocalDateTime.now()); // Cập nhật thời gian sử dụng
+            deviceRepository.save(device);
+        }
 
         var token = generateToken(user);
 
@@ -356,7 +384,7 @@ public class AuthenticationService {
         return AuthenticationResponse.builder().token(token).authenticated(true).build();
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request){
+    public AuthenticationResponse authenticate(AuthenticationRequest request) {
         // 1. Kiểm tra user tồn tại
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
@@ -369,59 +397,81 @@ public class AuthenticationService {
 
         // 3. Kiểm tra device
         String deviceInfo = getDeviceInfo(httpServletRequest);
-
-        boolean deviceExists = deviceRepository.existsByUserAndDeviceInfo(user, deviceInfo);
-
-        // Gắn cờ yêu cầu OTP nếu cần
+        Device existingDevice = deviceRepository.findByUserAndDeviceInfo(user, deviceInfo);
         boolean otpRequired = false;
 
-        if (!deviceExists) {
-            // 3.1 Gửi email cảnh báo
+        // 4. Nếu user đăng nhập lần đầu, bỏ qua OTP
+        if (Optional.ofNullable(user.getLastLoginAt()).isEmpty()) {
+            user.setLastLoginAt(LocalDateTime.now());
+            userRepository.save(user);
+
+            // Lưu thiết bị này vào DB mà không cần OTP
+            Device firstDevice = Device.builder()
+                    .user(user)
+                    .deviceInfo(deviceInfo)
+                    .createdAt(LocalDateTime.now())
+                    .lastUsedAt(LocalDateTime.now())
+                    .otpVerified(true) // Lần đầu tiên => Đánh dấu là thiết bị tin cậy
+                    .build();
+            deviceRepository.save(firstDevice);
+
+            // 9. Nếu không cần OTP => Sinh token & hoàn tất
+            String token = generateToken(user);
+            return AuthenticationResponse.builder()
+                    .token(token)
+                    .authenticated(true)
+                    .build();
+        }
+
+        if (existingDevice == null) {
+            // 5.1 Gửi email cảnh báo
             emailService.sendNewDeviceAlert(user.getEmail(), deviceInfo);
 
-            // 3.2 Lưu thiết bị mới vào DB (chưa xác nhận OTP)
+            // 5.2 Lưu thiết bị với trạng thái "chưa xác thực OTP"
             Device newDevice = Device.builder()
                     .user(user)
                     .deviceInfo(deviceInfo)
                     .createdAt(LocalDateTime.now())
                     .lastUsedAt(LocalDateTime.now())
+                    .otpVerified(false) // Mới, cần xác thực OTP
                     .build();
             deviceRepository.save(newDevice);
 
-            // 3.3 Nếu user không bật 2FA thì thiết bị lạ vẫn yêu cầu OTP
             otpRequired = true;
         } else {
-            // Nếu thiết bị đã có, cập nhật lastUsedAt
-            Device existingDevice = deviceRepository.findByUserAndDeviceInfo(user, deviceInfo);
-            existingDevice.setLastUsedAt(LocalDateTime.now());
-            deviceRepository.save(existingDevice);
+            // 6. Kiểm tra thiết bị đã xác thực OTP chưa
+            if (!existingDevice.isOtpVerified()) {
+                otpRequired = true;
+            } else {
+                existingDevice.setLastUsedAt(LocalDateTime.now());
+                deviceRepository.save(existingDevice);
+            }
         }
 
-        // 4. Nếu user bật 2FA thì luôn yêu cầu OTP
+        // 7. Nếu user bật 2FA thì luôn yêu cầu OTP
         if (user.isTwoFactorEnabled()) {
             otpRequired = true;
         }
 
-        // 5. Nếu cần OTP => gửi OTP & trả về thông báo
+
+        // 8. Nếu cần OTP => gửi OTP & trả về yêu cầu xác thực
         if (otpRequired) {
             SendOtpResponse sendOtpResponse = sendOtp(user.getUsername());
             return AuthenticationResponse.builder()
-                    .authenticated(false) // Chưa hoàn tất, cần xác thực OTP
-                    .otpRequired(true)    // Cần nhập OTP
-                    .message(sendOtpResponse.getResult()) // Thông báo cho client
+                    .authenticated(false) // Chưa hoàn tất, cần OTP
+                    .otpRequired(true)
+                    .message(sendOtpResponse.getResult()) // Gửi thông báo OTP
                     .build();
         }
 
-        // 6. Nếu không cần OTP => sinh token và hoàn tất
+        // 9. Nếu không cần OTP => Sinh token & hoàn tất
         String token = generateToken(user);
-
-        log.error(SIGNER_KEY);
-
         return AuthenticationResponse.builder()
                 .token(token)
                 .authenticated(true)
                 .build();
     }
+
 
     private String getDeviceInfo(HttpServletRequest request) {
         String userAgent = request.getHeader("User-Agent");
@@ -442,6 +492,7 @@ public class AuthenticationService {
                 ))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
+                .claim("userId", user.getId())
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());

@@ -87,4 +87,8 @@ openapi:
     url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
 
+app:
+  service:
+    profile: ${APP_SERVICE_PROFILE:http://localhost:8081/profile}
+
 

@@ -25,4 +25,5 @@ public class Device {
     String deviceInfo;
     LocalDateTime lastUsedAt;
     LocalDateTime createdAt = LocalDateTime.now();
+    boolean otpVerified;
 }
