@@ -48,10 +48,6 @@ public class SecurityConfig {
             "/auth/reset-password",
             "/auth/send-otp",
             "/auth/verify-otp",
-            "/oauth2/authorization/google",
-            "/oauth2/authorization/facebook",
-            "/auth/send-verify-email",
-            "/users/registration"
     };
 
     private final String[] PUBLIC_ENDPOINTS2 = {
