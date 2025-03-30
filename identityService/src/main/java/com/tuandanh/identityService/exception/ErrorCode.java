@@ -36,6 +36,8 @@ public enum ErrorCode {
     DISABLED_2FA(1023, "2FA is Disabled", HttpStatus.BAD_REQUEST),
     OTP_REQUEST_LIMIT_EXCEEDED(1024, "OTP request limit exceeded", HttpStatus.BAD_REQUEST),
     OTP_REQUEST_TOO_FREQUENT(1025, "OTP request too frequent", HttpStatus.BAD_REQUEST),
+    USERNAME_EXISTED(1026, "Username already exists", HttpStatus.CONFLICT),
+    EMAIL_EXISTED(1027, "Email already exists", HttpStatus.CONFLICT),
     ;
 
     private final int code;

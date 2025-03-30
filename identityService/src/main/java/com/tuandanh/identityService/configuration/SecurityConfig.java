@@ -51,7 +51,8 @@ public class SecurityConfig {
             "/oauth2/authorization/google",
             "/oauth2/authorization/facebook",
             "/auth/send-verify-email",
-            "/users/registration"
+            "/users/registration",
+            "/confirm-verify-email"
     };
 
     private final String[] PUBLIC_ENDPOINTS2 = {
