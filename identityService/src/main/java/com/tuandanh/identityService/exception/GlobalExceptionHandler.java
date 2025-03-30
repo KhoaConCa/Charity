@@ -83,9 +83,18 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = DataIntegrityViolationException.class)
-    ResponseEntity<ApiResponse> handlingDataIntegrityViolationException(DataIntegrityViolationException
-                                                                                exception){
-        ErrorCode errorCode = ErrorCode.USER_EXISTED;
+    ResponseEntity<ApiResponse> handlingDataIntegrityViolationException(DataIntegrityViolationException exception) {
+        String message = exception.getMostSpecificCause().getMessage();
+
+        ErrorCode errorCode;
+
+        if (message.contains("username")) {
+            errorCode = ErrorCode.USERNAME_EXISTED;
+        } else if (message.contains("email")) {
+            errorCode = ErrorCode.EMAIL_EXISTED;
+        } else {
+            errorCode = ErrorCode.USER_EXISTED; // Mặc định nếu không xác định được lỗi cụ thể
+        }
 
         ApiResponse apiResponse = ApiResponse.builder()
                 .code(errorCode.getCode())
