@@ -47,7 +47,7 @@ public class UserController {
             summary = "Tạo người dùng mới",
             description = "API dùng để tạo một người dùng mới với các thông tin cung cấp trong request body"
     )
-    @PostMapping
+    @PostMapping("/registration")
     public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request){
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
