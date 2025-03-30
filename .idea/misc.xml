@@ -6,6 +6,7 @@
       <list>
         <option value="$PROJECT_DIR$/identityService/pom.xml" />
         <option value="$PROJECT_DIR$/profileService/pom.xml" />
+        <option value="$PROJECT_DIR$/Apigateway/pom.xml" />
       </list>
     </option>
   </component>

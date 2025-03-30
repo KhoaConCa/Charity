@@ -1,25 +1,32 @@
 package com.tuandanh.profileService.entity;
 
-import com.tuandanh.profileService.enums.FriendshipStatus;
+import com.tuandanh.profileService.enums.FriendStatus;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
-@Node("FriendshipRequest")
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FriendshipRequest {
+@Node("FriendshipRequest")
+public class Friendship {
     @Id
     @GeneratedValue(generatorClass = UUIDStringGenerator.class)
-    private String id;
-    private String senderId;
-    private String receiverId;
-    private FriendshipStatus status;
+    String id;
+
+    @Property("senderId")
+    String senderId;
+
+    @Property("receiverId")
+    String receiverId;
+
+    @Property("status")
+    FriendStatus status;
 }

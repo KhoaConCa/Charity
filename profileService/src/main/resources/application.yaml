@@ -9,9 +9,16 @@ spring:
     authentication:
       username: neo4j
       password: loveHA13
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 aws3:
   access_key : AKIAU6VTTAOLZ5C6WXE2
   secret_key : 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
   bucket_name : tuandanh-profile-avatars
   region : us-east-1
+
+jwt:
+  signerKey: 1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij

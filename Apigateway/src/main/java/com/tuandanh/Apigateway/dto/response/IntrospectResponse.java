@@ -1,4 +1,4 @@
-package com.tuandanh.identityService.dto.response;
+package com.tuandanh.Apigateway.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

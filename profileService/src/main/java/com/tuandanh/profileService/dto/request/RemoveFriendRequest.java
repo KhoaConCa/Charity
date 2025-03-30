@@ -1,2 +1,14 @@
-package com.tuandanh.profileService.dto.request;public class RemoveFriendRequest {
+package com.tuandanh.profileService.dto.request;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class RemoveFriendRequest {
+    String senderId;
+    String receiverId;
 }
