@@ -4,16 +4,19 @@ import com.tuandanh.profileService.dto.ApiResponse;
 import com.tuandanh.profileService.dto.request.ProfileCreationRequest;
 import com.tuandanh.profileService.dto.request.ProfileUpdateRequest;
 import com.tuandanh.profileService.dto.response.ProfileResponse;
+import com.tuandanh.profileService.entity.UserProfile;
 import com.tuandanh.profileService.service.UserProfileService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/userProfiles")
@@ -22,6 +25,14 @@ import java.io.IOException;
 public class UserProfileController {
     UserProfileService userProfileService;
 
+    @PostMapping("/set-active-profile")
+    public ApiResponse<String> setActiveProfile(@RequestParam String profileId, Authentication authentication) {
+        userProfileService.setActiveProfile(profileId, authentication);
+
+        return ApiResponse.<String>builder()
+                .result("setActiveProfile successful")
+                .build();
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<ProfileResponse> createProfile(
@@ -75,6 +86,24 @@ public class UserProfileController {
 
         return ApiResponse.<String>builder()
                 .result("profile deleted")
+                .build();
+    }
+
+    @GetMapping("/myProfiles")
+    public ApiResponse<List<ProfileResponse>> getMyProfiles(Authentication authentication){
+        List<ProfileResponse> profileResponses = userProfileService.getMyProfiles(authentication);
+
+        return ApiResponse.<List<ProfileResponse>>builder()
+                .result(profileResponses)
+                .build();
+    }
+
+    @GetMapping
+    public ApiResponse<List<ProfileResponse>> getAllProfiles(){
+        List<ProfileResponse> profileResponses = userProfileService.getAllProfiles();
+
+        return ApiResponse.<List<ProfileResponse>>builder()
+                .result(profileResponses)
                 .build();
     }
 }

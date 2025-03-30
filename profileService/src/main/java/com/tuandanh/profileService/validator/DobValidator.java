@@ -1,4 +1,4 @@
-package com.tuandanh.identityService.validator;
+package com.tuandanh.profileService.validator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
