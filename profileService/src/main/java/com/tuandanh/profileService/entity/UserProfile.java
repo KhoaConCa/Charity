@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.neo4j.core.schema.*;
 import org.springframework.data.neo4j.core.support.UUIDStringGenerator;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,6 +30,8 @@ public class UserProfile {
     String lastName;
     String avatarUrl;
     String location;
+    String bio;
+    LocalDate dob;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     boolean isActive;

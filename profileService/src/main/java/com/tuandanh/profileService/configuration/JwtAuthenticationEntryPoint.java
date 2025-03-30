@@ -1,9 +1,9 @@
-package com.tuandanh.identityService.configuration;
+package com.tuandanh.profileService.configuration;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tuandanh.identityService.dto.ApiResponse;
-import com.tuandanh.identityService.exception.ErrorCode;
+import com.tuandanh.profileService.dto.ApiResponse;
+import com.tuandanh.profileService.exception.ErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
