@@ -40,6 +40,20 @@ public class SecurityConfig {
         "/internal/userProfiles"
     };
 
+    private final String[] PUBLIC_ENDPOINTS2 = {
+            "/error",
+            "/identity/v3/api-docs",
+            "/identity/v3/api-docs/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/swagger-resources/**",
+            "/api-docs/**",
+            "/webjars/**", // thêm dòng này để load js, css
+            "/swagger-ui/swagger-ui-bundle.js"
+    };
+
 
 
     @Bean
@@ -47,6 +61,7 @@ public class SecurityConfig {
 
 
         httpSecurity.authorizeHttpRequests(request -> request
+                .requestMatchers(PUBLIC_ENDPOINTS2).permitAll()
                 .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS1).permitAll()
                 .requestMatchers("/ws/**").permitAll() // Các endpoint public
                 .requestMatchers("/roles/**").hasRole("ADMIN")  // Chỉ admin mới có thể truy cập /roles/**

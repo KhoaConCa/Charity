@@ -50,7 +50,15 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/oauth2/authorization/facebook",
             "/auth/send-verify-email",
             "/users/registration",
-            "/confirm-verify-email"
+            "/confirm-verify-email",
+
+            // Swagger URLs
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/api/v1.0.0/identity/v3/api-docs",
+            "/api/v1.0.0/profile/v3/api-docs"
     );
 
     @Override
