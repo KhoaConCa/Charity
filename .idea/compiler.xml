@@ -21,19 +21,22 @@
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct/1.5.5.Final/mapstruct-1.5.5.Final.jar" />
         </processorPath>
-        <module name="Apigateway" />
-        <module name="identityService" />
-        <module name="profileService" />
-        <module name="notificationService" />
+           <module name="Apigateway" />
+           <module name="identityService" />
+           <module name="profileService" />
+           <module name="notificationService" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="profileService" target="21" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="Apigateway" options="-parameters -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring -Amapstruct.verbose=true" />
-      <module name="identityService" options="-parameters -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring -Amapstruct.verbose=true" />
-      <module name="notificationService" options="-parameters -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring -Amapstruct.verbose=true" />
-      <module name="profileService" options="-parameters -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring -Amapstruct.verbose=true" />
+         <module name="Apigateway" options="-parameters -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring -Amapstruct.verbose=true" />
+         <module name="identityService" options="-parameters -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring -Amapstruct.verbose=true" />
+         <module name="notificationService" options="-parameters -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring -Amapstruct.verbose=true" />
+         <module name="profileService" options="-parameters -Amapstruct.suppressGeneratorTimestamp=true -Amapstruct.defaultComponentModel=spring -Amapstruct.verbose=true" />
     </option>
   </component>
 </project>
