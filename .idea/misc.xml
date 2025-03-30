@@ -5,6 +5,9 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/identityService/pom.xml" />
+        <option value="$PROJECT_DIR$/profileService/pom.xml" />
+        <option value="$PROJECT_DIR$/Apigateway/pom.xml" />
+        <option value="$PROJECT_DIR$/notificationService/pom.xml" />
       </list>
     </option>
   </component>

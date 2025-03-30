@@ -1,4 +1,4 @@
-package com.tuandanh.identityService.dto.request;
+package com.tuandanh.Apigateway.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

@@ -1,10 +1,14 @@
 package com.tuandanh.profileService.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tuandanh.profileService.validator.DobConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.validator.constraints.URL;
+
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -12,6 +16,7 @@ import org.hibernate.validator.constraints.URL;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProfileCreationRequest {
+    String userId;
     @NotBlank(message = "USERNAME_INVALID")
     @Size(min = 3, max = 20, message = "USERNAME_INVALID")
     String username;
