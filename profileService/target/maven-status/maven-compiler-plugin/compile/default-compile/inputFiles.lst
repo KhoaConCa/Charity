@@ -1,15 +1,38 @@
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\controller\UserProfileController.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\ApiResponse.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\request\ProfileCreationRequest.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\request\ProfileUpdateRequest.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\response\ProfileResponse.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\entity\UserProfile.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\exception\AppException.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\exception\ErrorCode.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\exception\GlobalExceptionHandler.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\exception\ValidationError.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\mapper\UserProfileMapper.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\ProfileServiceApplication.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\repository\UserProfileRepository.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\service\aws3\S3Service.java
-C:\Users\my pc\Desktop\Charity\profileService\src\main\java\com\tuandanh\profileService\service\UserProfileService.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\configuration\JwtAuthenticationEntryPoint.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\configuration\OpenAPIConfig.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\configuration\SecurityConfig.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\controller\BlockController.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\controller\FollowController.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\controller\FriendShipController.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\controller\InternalUserProfileController.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\controller\UserProfileController.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\ApiResponse.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\request\FollowRequest.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\request\FriendshipRequest.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\request\ProfileCreationRequest.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\request\ProfileUpdateRequest.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\request\RemoveFriendRequest.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\response\FollowResponse.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\response\FriendshipResponse.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\response\ProfileResponse.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\dto\response\RemoveFriendResponse.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\entity\Friendship.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\entity\UserProfile.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\enums\FriendStatus.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\exception\AppException.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\exception\ErrorCode.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\exception\GlobalExceptionHandler.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\exception\ValidationError.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\mapper\FriendshipMapper.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\mapper\UserProfileMapper.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\ProfileServiceApplication.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\repository\FriendshipRepository.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\repository\UserProfileRepository.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\service\aws3\S3Service.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\service\BlockService.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\service\FollowService.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\service\FriendshipService.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\service\redis\RedisService.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\service\UserProfileService.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\validator\DobConstraint.java
+D:\Project\Charity\CharityBackend\Charity\profileService\src\main\java\com\tuandanh\profileService\validator\DobValidator.java

@@ -84,11 +84,11 @@ openapi:
     name: ${OPENAPI_LICENSE_NAME:API License}
     url: ${OPENAPI_LICENSE_URL:https://www.facebook.com/nguyentuan.danh.167/}
   server:
-    url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
+    url: ${OPENAPI_SERVER_URL:http://identity-service:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
 
 app:
   service:
-    profile: ${APP_SERVICE_PROFILE:http://localhost:8081/profile}
+    profile: ${APP_SERVICE_PROFILE:http://profile-service:8081/profile}
 
 

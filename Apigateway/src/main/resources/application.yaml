@@ -8,14 +8,14 @@ spring:
     gateway:
       routes:
         - id: user-service
-          uri: http://localhost:8080
+          uri: http://identity-service:8080
           predicates:
             - Path=${app.api-prefix}/identity/**
           filters:
             - StripPrefix=2
 
         - id: profile-service
-          uri: http://localhost:8081
+          uri: http://profile-service:8081
           predicates:
             - Path=${app.api-prefix}/profile/**
           filters:
