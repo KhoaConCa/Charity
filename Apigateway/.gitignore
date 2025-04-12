@@ -1,3 +1,7 @@
+# Ignore sensitive files
+notificationService/src/main/resources/firebase/firebase-service-account.json
+notificationService/.env
+
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
