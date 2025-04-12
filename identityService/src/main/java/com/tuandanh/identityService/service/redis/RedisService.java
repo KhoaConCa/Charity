@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -75,8 +76,8 @@ public class RedisService {
      * @param email Email của user.
      * @return true nếu user đã gửi OTP gần đây.
      */
-    public boolean isOtpRateLimited(String email) {
-        String key = OTP_RATE_LIMIT_KEY + email;
+    public boolean isOtpRateLimited(String email, TokenType type) {
+        String key = OTP_RATE_LIMIT_KEY + type + ":" + email;
         return exists(key);
     }
 
@@ -84,9 +85,9 @@ public class RedisService {
      * Đánh dấu rằng user vừa gửi OTP, hạn chế gửi tiếp trong 30 giây.
      * @param email Email của user.
      */
-    public void setOtpRateLimit(String email) {
-        String key = OTP_RATE_LIMIT_KEY + email;
-        storeData(key, "1", Duration.ofSeconds(30)); // Chặn gửi OTP trong 30 giây
+    public void setOtpRateLimit(String email, TokenType type) {
+        String key = OTP_RATE_LIMIT_KEY + type + ":" + email;
+        storeData(key, "1", Duration.ofSeconds(30));
     }
 
     /**
@@ -94,8 +95,8 @@ public class RedisService {
      * @param email Email của user.
      * @return true nếu user đã gửi quá số lần cho phép.
      */
-    public boolean isOtpRequestLimitExceeded(String email) {
-        String key = OTP_REQUEST_COUNT_KEY + email;
+    public boolean isOtpRequestLimitExceeded(String email, TokenType type) {
+        String key = OTP_REQUEST_COUNT_KEY + type.name() + ":" + email;
         String countStr = redisTemplate.opsForValue().get(key);
         int count = countStr != null ? Integer.parseInt(countStr) : 0;
         return count >= 5;
@@ -105,8 +106,8 @@ public class RedisService {
      * Tăng số lần gửi OTP của user, giới hạn trong 10 phút.
      * @param email Email của user.
      */
-    public void increaseOtpRequestCount(String email) {
-        String key = OTP_REQUEST_COUNT_KEY + email;
+    public void increaseOtpRequestCount(String email, TokenType type) {
+        String key = OTP_REQUEST_COUNT_KEY + type.name() + ":" + email;
         Long count = redisTemplate.opsForValue().increment(key);
         if (count != null && count == 1) {
             redisTemplate.expire(key, 10, TimeUnit.MINUTES); // Đặt TTL 10 phút
@@ -115,24 +116,47 @@ public class RedisService {
 
     // ---------------------- OTP Attempt Methods ----------------------
 
-    public boolean isOtpAttemptExceeded(String email) {
-        String key = OTP_ATTEMPT_KEY + email;
+    public boolean isOtpAttemptExceeded(String email, TokenType type) {
+        String key = OTP_ATTEMPT_KEY + type.name() + ":" + email;
         String attemptsStr = redisTemplate.opsForValue().get(key);
         int attempts = attemptsStr != null ? Integer.parseInt(attemptsStr) : 0;
         return attempts >= MAX_OTP_ATTEMPTS;
     }
 
-    public void increaseOtpAttempt(String email) {
-        String key = OTP_ATTEMPT_KEY + email;
+    public void increaseOtpAttempt(String email, TokenType type) {
+        String key = OTP_ATTEMPT_KEY + type.name() + ":" + email;
         Long attempts = redisTemplate.opsForValue().increment(key);
         if (attempts != null && attempts == 1) {
             redisTemplate.expire(key, Duration.ofMinutes(10)); // Cùng thời gian sống với OTP
         }
     }
 
-    public void resetOtpAttempts(String email) {
-        String key = OTP_ATTEMPT_KEY + email;
+    public void resetOtpAttempts(String email, TokenType type) {
+        String key = OTP_ATTEMPT_KEY + type.name() + ":" + email;
         redisTemplate.delete(key);
+    }
+
+    //------------------------Get Email from Otp------------------------
+
+    /**
+     * Truy ngược lại email từ OTP (dò trong Redis key theo pattern VERIFY_EMAIL:*).
+     * @param otp Mã OTP người dùng nhập.
+     * @param type Loại token (ví dụ: VERIFY_EMAIL).
+     * @return email nếu tìm thấy key chứa giá trị = otp, null nếu không tìm thấy.
+     */
+    public String getEmailByOtp(String otp, TokenType type) {
+        String pattern = type.name() + ":*"; // Ví dụ: VERIFY_EMAIL:*
+        Set<String> keys = redisTemplate.keys(pattern);
+
+        if (keys != null) {
+            for (String key : keys) {
+                String value = redisTemplate.opsForValue().get(key);
+                if (otp.equals(value)) {
+                    return key.split(":", 2)[1]; // Lấy phần sau VERIFY_EMAIL: => là email
+                }
+            }
+        }
+        return null;
     }
 
 

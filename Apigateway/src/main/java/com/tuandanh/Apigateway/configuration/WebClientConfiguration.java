@@ -1,6 +1,7 @@
 package com.tuandanh.Apigateway.configuration;
 
 import com.tuandanh.Apigateway.repository.IdentityClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -14,10 +15,13 @@ import java.util.List;
 
 @Configuration
 public class WebClientConfiguration {
+
+    @Value("${identity.url}")
+    private String identityUrl;
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
-                .baseUrl("http://localhost:8080/identity")
+                .baseUrl(identityUrl)
                 .build();
     }
 

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Charity Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .logo {
+            width: 150px;
+            height: 150px; /* Đảm bảo hình vuông */
+            border-radius: 50%;
+            object-fit: cover; /* Giữ tỷ lệ ảnh */
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+        }
+        .content {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .footer {
+            font-size: 12px;
+            color: #999;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <img src="https://p16-common-sign-sg.tiktokcdn-us.com/tos-alisg-avt-0068/aa50c710cdf2f414ef13403177d7daec~tplv-tiktokx-cropcenter:720:720.jpeg?dr=9640&refresh_token=64570b93&x-expires=1743696000&x-signature=5LlnZbIkOEYE5vG5%2FGG5nNQjnPY%3D&t=4d5b0474&ps=13740610&shp=a5d48078&shcp=81f88b70&idc=useast5"
+         alt="Charity Logo" class="logo">
+    <div class="header">Welcome, <span th:text="${user_name}"></span>!</div>
+    <div class="content">
+        Thank you for joining the <strong>Charity Application</strong>! We are excited to have you on board.
+        <br><br>
+        Get started by exploring our platform and engaging with our amazing community.
+    </div>
+    <a href="https://yourdomain.com/dashboard" class="button">Go to Dashboard</a>
+    <div class="footer">
+        If you have any questions, feel free to <a href="https://www.facebook.com/nguyentuan.danh.167">contact us</a>.
+        <br>
+        &copy; 2025 Charity Application. All rights reserved.
+    </div>
+</div>
+</body>
+</html>

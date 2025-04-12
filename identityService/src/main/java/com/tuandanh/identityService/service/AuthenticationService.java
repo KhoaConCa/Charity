@@ -5,11 +5,14 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.tuandanh.event.dto.NotificationEvent;
 import com.tuandanh.identityService.dto.request.*;
 import com.tuandanh.identityService.dto.response.*;
 import com.tuandanh.identityService.entity.Device;
 import com.tuandanh.identityService.entity.InvalidatedToken;
 import com.tuandanh.identityService.entity.User;
+import com.tuandanh.identityService.enums.CHANEL;
+import com.tuandanh.identityService.enums.KafkaTopic;
 import com.tuandanh.identityService.enums.TokenType;
 import com.tuandanh.identityService.exception.AppException;
 import com.tuandanh.identityService.exception.ErrorCode;
@@ -26,10 +29,12 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -38,10 +43,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.Optional;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -52,9 +54,9 @@ public class AuthenticationService {
     UserRepository userRepository;
     InvalidatedTokenRepository invalidatedTokenRepository;
     RedisService redisService;
-    EmailService emailService;
     PasswordEncoder passwordEncoder;
     DeviceRepository deviceRepository;
+    KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
     HttpServletRequest httpServletRequest;
 
@@ -132,18 +134,18 @@ public class AuthenticationService {
         String email = user.getEmail();
 
         // 1️⃣ Kiểm tra xem user có gửi OTP trong vòng 30 giây qua không (rate limit)
-        if (redisService.isOtpRateLimited(email)) {
+        if (redisService.isOtpRateLimited(email, TokenType.TWO_FACTOR)) {
             throw new AppException(ErrorCode.OTP_REQUEST_TOO_FREQUENT); // Quá nhanh, đợi thêm
         }
 
         // 2️⃣ Kiểm tra xem user có gửi OTP quá số lần cho phép trong 10 phút không
-        if (redisService.isOtpRequestLimitExceeded(email)) {
+        if (redisService.isOtpRequestLimitExceeded(email, TokenType.TWO_FACTOR)) {
             throw new AppException(ErrorCode.OTP_REQUEST_LIMIT_EXCEEDED); // Quá nhiều yêu cầu
         }
 
         // 3️⃣ Nếu hợp lệ, tăng số lần gửi OTP và đặt rate limit
-        redisService.increaseOtpRequestCount(email);
-        redisService.setOtpRateLimit(email);
+        redisService.increaseOtpRequestCount(email, TokenType.TWO_FACTOR);
+        redisService.setOtpRateLimit(email, TokenType.TWO_FACTOR);
 
         SendEmailRequest verifyEmailRequest = new SendEmailRequest(user.getEmail());
 
@@ -151,7 +153,17 @@ public class AuthenticationService {
         // Lưu vào Redis với TTL
         redisService.storeToken(verifyEmailRequest.getEmail(), otp,TokenType.TWO_FACTOR);
         // Gửi email
-        emailService.sendTwoFactorCode(verifyEmailRequest.getEmail(), otp);
+//        emailService.sendTwoFactorCode(verifyEmailRequest.getEmail(), otp);
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .recipient(verifyEmailRequest.getEmail())
+                .chanel(CHANEL.EMAIL)
+                .subject(KafkaTopic.USER_TWO_FACTOR_AUTH.getTopic())
+                .body(KafkaTopic.USER_TWO_FACTOR_AUTH.getDes())
+                .templateCode("email/two-factor-code")
+                .param(Map.of("otp_code", otp))
+                .build();
+
+        kafkaTemplate.send(KafkaTopic.USER_TWO_FACTOR_AUTH.getTopic(), notificationEvent);
 
         return SendOtpResponse.builder()
                 .result("Otp sent to email")
@@ -172,7 +184,7 @@ public class AuthenticationService {
         String email = user.getEmail();
 
         // 2. Kiểm tra giới hạn số lần nhập sai
-        if (redisService.isOtpAttemptExceeded(email)) {
+        if (redisService.isOtpAttemptExceeded(email, TokenType.TWO_FACTOR)) {
             throw new AppException(ErrorCode.OTP_ATTEMPT_LIMIT_EXCEEDED); // Custom error code
         }
 
@@ -186,12 +198,12 @@ public class AuthenticationService {
         // 4. So sánh OTP
         if (!storedOtp.equals(verifyOtpRequest.getOtp())) {
             // Tăng số lần nhập sai
-            redisService.increaseOtpAttempt(email);
+            redisService.increaseOtpAttempt(email, TokenType.TWO_FACTOR);
             throw new AppException(ErrorCode.OTP_INVALID);
         }
 
         // 5. Nếu đúng thì reset số lần sai và xóa OTP
-        redisService.resetOtpAttempts(email);
+        redisService.resetOtpAttempts(email, TokenType.TWO_FACTOR);
         redisService.deleteToken(email, TokenType.TWO_FACTOR);
 
         // Cập nhập thiết bị thành đã xác thực otp
@@ -225,7 +237,16 @@ public class AuthenticationService {
         redisService.storeToken(token, email, TokenType.VERIFY_EMAIL); // Lưu token xác nhận email
 
         String verifyLink = "http://localhost:8080/api/auth/verify-email?token=" + token;
-        emailService.sendVerifyEmail(email, verifyLink);
+//        emailService.sendVerifyEmail(email, verifyLink);
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .chanel(CHANEL.EMAIL)
+                .subject(KafkaTopic.USER_VERIFY_EMAIL.getTopic())
+                .recipient(email)
+                .body(KafkaTopic.USER_VERIFY_EMAIL.getDes())
+                .templateCode("email/verify-email")
+                .param(Map.of("verify_link", verifyLink))
+                .build();
+        kafkaTemplate.send(KafkaTopic.USER_VERIFY_EMAIL.getTopic(), notificationEvent);
 
         return VerifyEmailResponse.builder()
                 .result("Verification email sent")
@@ -243,6 +264,95 @@ public class AuthenticationService {
 
         return sendVerifyEmail(verifyEmailRequest);
     }
+
+
+    public VerifyEmailResponse sendVerifyEmailWithOtp(SendEmailRequest request) {
+        String email = request.getEmail();
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+
+        // 1️⃣ Kiểm tra xem user có gửi OTP trong vòng 30 giây qua không (rate limit)
+        if (redisService.isOtpRateLimited(email, TokenType.VERIFY_EMAIL)) {
+            throw new AppException(ErrorCode.OTP_REQUEST_TOO_FREQUENT); // Quá nhanh, đợi thêm
+        }
+
+        // 2️⃣ Kiểm tra xem user có gửi OTP quá số lần cho phép trong 10 phút không
+        if (redisService.isOtpRequestLimitExceeded(email, TokenType.VERIFY_EMAIL)) {
+            throw new AppException(ErrorCode.OTP_REQUEST_LIMIT_EXCEEDED); // Quá nhiều yêu cầu
+        }
+
+        // 3️⃣ Nếu hợp lệ, tăng số lần gửi OTP và đặt rate limit
+        redisService.increaseOtpRequestCount(email, TokenType.VERIFY_EMAIL);
+        redisService.setOtpRateLimit(email, TokenType.VERIFY_EMAIL);
+
+        SendEmailRequest verifyEmailRequest = new SendEmailRequest(email);
+
+        String otp = generateOtp();
+        // Lưu vào Redis với TTL
+        redisService.storeToken(verifyEmailRequest.getEmail(), otp,TokenType.VERIFY_EMAIL);
+        // Gửi email
+//        emailService.sendTwoFactorCode(verifyEmailRequest.getEmail(), otp);
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .recipient(verifyEmailRequest.getEmail())
+                .chanel(CHANEL.EMAIL)
+                .subject(KafkaTopic.USER_TWO_FACTOR_AUTH.getTopic())
+                .body(KafkaTopic.USER_TWO_FACTOR_AUTH.getDes())
+                .templateCode("email/verify-email-chicken")// sửa sau
+                .param(Map.of("otp_code", otp))
+                .build();
+
+        kafkaTemplate.send(KafkaTopic.USER_TWO_FACTOR_AUTH.getTopic(), notificationEvent);
+
+        return VerifyEmailResponse.builder()
+                .result("Verification email sent")
+                .build();
+    }
+
+    // method dởm, sẽ xóa sau
+    public VerifyEmailConfirmResponse verifyOtpEmail(VerifyEmailChickenRequest request)
+            throws AppException {
+        String email = redisService.getEmailByOtp(request.getOtp(), TokenType.VERIFY_EMAIL);
+
+        // 2. Kiểm tra giới hạn số lần nhập sai
+        if (redisService.isOtpAttemptExceeded(email, TokenType.VERIFY_EMAIL)) {
+            throw new AppException(ErrorCode.OTP_ATTEMPT_LIMIT_EXCEEDED); // Custom error code
+        }
+
+        // 3. Lấy OTP từ Redis
+        String storedOtp = redisService.getValueByToken(email, TokenType.VERIFY_EMAIL);
+
+        if (storedOtp == null) {
+            throw new AppException(ErrorCode.OTP_EXPIRED);
+        }
+
+        // 4. So sánh OTP
+        if (!storedOtp.equals(request.getOtp())) {
+            // Tăng số lần nhập sai
+            redisService.increaseOtpAttempt(email, TokenType.VERIFY_EMAIL);
+            throw new AppException(ErrorCode.OTP_INVALID);
+        }
+
+        // 5. Nếu đúng thì reset số lần sai và xóa OTP
+        redisService.resetOtpAttempts(email, TokenType.VERIFY_EMAIL);
+        redisService.deleteToken(email, TokenType.VERIFY_EMAIL);
+
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+
+        User user = optionalUser.get();
+        user.setEmailVerified(true); // Đánh dấu đã xác nhận
+        userRepository.save(user);
+
+        return VerifyEmailConfirmResponse.builder()
+                .result("Successfully verified email")
+                .build();
+    }
+
+
 
 
     public VerifyEmailConfirmResponse confirmVerifyEmail(VerifyEmailConfirmRequest request) {
@@ -283,10 +393,65 @@ public class AuthenticationService {
         redisService.storeToken(token, email, TokenType.RESET_PASSWORD); // Store token in Redis
 
         String resetLink = "http://localhost:8080/api/auth/reset-password?token=" + token;
-        emailService.sendPasswordResetEmail(email, resetLink);
+//        emailService.sendPasswordResetEmail(email, resetLink);
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .chanel(CHANEL.EMAIL)
+                .subject(KafkaTopic.USER_PASSWORD_RESET.getTopic())
+                .recipient(email)
+                .body(KafkaTopic.USER_PASSWORD_RESET.getDes())
+                .templateCode("email/reset-password")
+                .param(Map.of("reset_link", resetLink))
+                .build();
+        kafkaTemplate.send(KafkaTopic.USER_PASSWORD_RESET.getTopic(), notificationEvent);
 
         return ForgotPasswordResponse.builder()
                 .result("User existed, go to reset password")
+                .build();
+    }
+    //method dởm, sẽ xóa sau
+    public ForgotPasswordResponse processForgotPasswordWithOtp(ForgotPasswordRequest forgotPasswordRequest) {
+        String email = forgotPasswordRequest.getEmail();
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            // Security: Do not reveal whether email exists
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        }
+
+        // 1️⃣ Kiểm tra xem user có gửi OTP trong vòng 30 giây qua không (rate limit)
+        if (redisService.isOtpRateLimited(email, TokenType.RESET_PASSWORD)) {
+            throw new AppException(ErrorCode.OTP_REQUEST_TOO_FREQUENT); // Quá nhanh, đợi thêm
+        }
+
+        // 2️⃣ Kiểm tra xem user có gửi OTP quá số lần cho phép trong 10 phút không
+        if (redisService.isOtpRequestLimitExceeded(email, TokenType.RESET_PASSWORD)) {
+            throw new AppException(ErrorCode.OTP_REQUEST_LIMIT_EXCEEDED); // Quá nhiều yêu cầu
+        }
+
+        // 3️⃣ Nếu hợp lệ, tăng số lần gửi OTP và đặt rate limit
+        redisService.increaseOtpRequestCount(email, TokenType.RESET_PASSWORD);
+        redisService.setOtpRateLimit(email, TokenType.RESET_PASSWORD);
+
+        SendEmailRequest verifyEmailRequest = new SendEmailRequest(email);
+
+        String otp = generateOtp();
+        // Lưu vào Redis với TTL
+        redisService.storeToken(verifyEmailRequest.getEmail(),otp,TokenType.RESET_PASSWORD);
+        // Gửi email
+//        emailService.sendTwoFactorCode(verifyEmailRequest.getEmail(), otp);
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .recipient(verifyEmailRequest.getEmail())
+                .chanel(CHANEL.EMAIL)
+                .subject(KafkaTopic.USER_TWO_FACTOR_AUTH.getTopic())
+                .body(KafkaTopic.USER_TWO_FACTOR_AUTH.getDes())
+                .templateCode("email/verify-email-chicken")// sửa sau
+                .param(Map.of("otp_code", otp))
+                .build();
+
+        kafkaTemplate.send(KafkaTopic.USER_TWO_FACTOR_AUTH.getTopic(), notificationEvent);
+
+
+        return ForgotPasswordResponse.builder()
+                .result("Otp verification sent successfully")
                 .build();
     }
 
@@ -308,6 +473,38 @@ public class AuthenticationService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         redisService.deleteToken(token, TokenType.RESET_PASSWORD); // Invalidate token after use
+
+        return ResetPasswordResponse.builder()
+                .result("Password changed")
+                .build();
+    }
+
+    public String verifyOtpWithResetPassWord(String otp){
+        String email = redisService.getEmailByOtp(otp, TokenType.RESET_PASSWORD);
+        if (email == null) {
+            throw new IllegalArgumentException("Invalid or expired otp.");
+        }
+
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new IllegalArgumentException("User not found.");
+        }
+
+        redisService.deleteToken(otp, TokenType.RESET_PASSWORD); // Invalidate otp after use
+        return "verify Otp successfully!";
+    }
+
+    public ResetPasswordResponse resetPasswordWithOtp(ResetPasswordOtpRequest request, Authentication authentication) {
+        String newPassword = request.getNewPassword();
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String USER_ID = "userId";
+        String userId = (String) jwt.getClaims().get(USER_ID);
+
+        Optional<User> optionalUser = userRepository.findById(userId);
+
+        User user = optionalUser.get();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
 
         return ResetPasswordResponse.builder()
                 .result("Password changed")
@@ -425,7 +622,16 @@ public class AuthenticationService {
 
         if (existingDevice == null) {
             // 5.1 Gửi email cảnh báo
-            emailService.sendNewDeviceAlert(user.getEmail(), deviceInfo);
+//            emailService.sendNewDeviceAlert(user.getEmail(), deviceInfo);
+            NotificationEvent notificationEvent = NotificationEvent.builder()
+                    .chanel(CHANEL.EMAIL)
+                    .recipient(user.getEmail())
+                    .subject(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getTopic())
+                    .body(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getDes())
+                    .templateCode("email/new-device-alert")
+                    .param(Map.of("device_info", deviceInfo))
+                    .build();
+            kafkaTemplate.send(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getTopic(), notificationEvent);
 
             // 5.2 Lưu thiết bị với trạng thái "chưa xác thực OTP"
             Device newDevice = Device.builder()

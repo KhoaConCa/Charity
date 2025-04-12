@@ -29,6 +29,14 @@ import java.util.List;
 public class UserProfileController {
     UserProfileService userProfileService;
 
+    @Operation(summary = "Lấy  hồ sơ hoạt động", description = "API lấy  hồ sơ đang hoạt động của người dùng")
+    @GetMapping("/get-active-profile/{userId}")
+    public ApiResponse<String> getActiveProfile(
+            @PathVariable String userId) {
+        String activeProfileId = userProfileService.getActiveProfile(userId);
+        return ApiResponse.<String>builder().result(activeProfileId).build();
+    }
+
     @Operation(summary = "Đặt hồ sơ hoạt động", description = "API đặt một hồ sơ làm hồ sơ hoạt động của người dùng")
     @PostMapping("/set-active-profile")
     public ApiResponse<String> setActiveProfile(
@@ -60,7 +68,7 @@ public class UserProfileController {
     }
 
     @Operation(summary = "Cập nhật ảnh đại diện", description = "API cập nhật ảnh đại diện của hồ sơ")
-    @PutMapping("/{profileId}/avatar")
+    @PutMapping(value = "/{profileId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<String> updateAvatar(
             @PathVariable String profileId,
             @RequestPart("avatar") MultipartFile avatarFile) throws IOException {

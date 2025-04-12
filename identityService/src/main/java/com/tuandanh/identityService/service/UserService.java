@@ -1,5 +1,6 @@
 package com.tuandanh.identityService.service;
 
+import com.tuandanh.event.dto.NotificationEvent;
 import com.tuandanh.identityService.constant.PredefinedRole;
 import com.tuandanh.identityService.dto.request.ChangePasswordRequest;
 import com.tuandanh.identityService.dto.request.UserCreationRequest;
@@ -9,6 +10,8 @@ import com.tuandanh.identityService.dto.response.UserOnlineStatusResponse;
 import com.tuandanh.identityService.dto.response.UserResponse;
 import com.tuandanh.identityService.entity.Role;
 import com.tuandanh.identityService.entity.User;
+import com.tuandanh.identityService.enums.CHANEL;
+import com.tuandanh.identityService.enums.KafkaTopic;
 import com.tuandanh.identityService.exception.AppException;
 import com.tuandanh.identityService.exception.ErrorCode;
 import com.tuandanh.identityService.mapper.ProfleMapper;
@@ -20,6 +23,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,6 +39,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +52,7 @@ public class UserService {
     RedisTemplate<String, Object> redisTemplate;
     ProfileClient profileClient;
     ProfleMapper profleMapper;
+    KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
 
     public UserResponse createUser(UserCreationRequest request) {
@@ -70,6 +76,17 @@ public class UserService {
         var authHeader = servletRequestAttributes.getRequest().getHeader("Authorization");
 
         profileClient.createProfile(authHeader, profileRequest);
+
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .chanel(CHANEL.EMAIL)
+                .recipient(request.getEmail())
+                .subject("Welcome to Charity Application")
+                .templateCode("email/welcome")
+                .param(Map.of("user_name", user.getUsername()))
+                .body("Hello, " + request.getUsername())
+                .build();
+
+        kafkaTemplate.send(KafkaTopic.USER_LOGIN_EVENTS.getTopic(), notificationEvent);
 
         return userMapper.toUserResponse(user);
     }

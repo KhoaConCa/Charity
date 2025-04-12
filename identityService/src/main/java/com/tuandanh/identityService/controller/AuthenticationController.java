@@ -6,11 +6,13 @@ import com.tuandanh.identityService.dto.request.*;
 import com.tuandanh.identityService.dto.response.*;
 import com.tuandanh.identityService.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
@@ -74,6 +76,16 @@ public class AuthenticationController {
                 .build();
     }
 
+    @Operation(summary = "Gửi email xác thực bằng otp", description = "API gửi email xác nhận bằng otp để xác thực tài khoản")
+    @PostMapping("/send-verify-email-with-otp")
+    public ApiResponse<VerifyEmailResponse> sendVerifyEmailWithOtp(@RequestBody SendEmailRequest request) {
+        VerifyEmailResponse verifyEmailResponse = authenticationService.sendVerifyEmailWithOtp(request);
+
+        return ApiResponse.<VerifyEmailResponse>builder()
+                .result(verifyEmailResponse)
+                .build();
+    }
+
     @Operation(summary = "Gửi email xác thực khi đăng nhập", description = "API gửi email xác nhận khi đăng nhập")
     @PostMapping("/send-verify-email-login")
     public ApiResponse<VerifyEmailResponse> sendVerifyEmailLogIn() {
@@ -96,11 +108,35 @@ public class AuthenticationController {
                 .build();
     }
 
+    @Operation(summary = "Xác nhận email với otp", description = "API xác nhận email(otp) với mã xác nhận")
+    @PostMapping("/confirm-verify-email-otp")
+    public ApiResponse<VerifyEmailConfirmResponse> confirmVerifyEmailWithOtp(@RequestBody VerifyEmailChickenRequest
+                                                                              request) {
+        VerifyEmailConfirmResponse verifyEmailConfirmResponse = authenticationService
+                .verifyOtpEmail(request);
+
+        return ApiResponse.<VerifyEmailConfirmResponse>builder()
+                .result(verifyEmailConfirmResponse)
+                .build();
+    }
+
     @Operation(summary = "Quên mật khẩu", description = "API gửi email đặt lại mật khẩu")
     @PostMapping("/forgot-password")
     public ApiResponse<ForgotPasswordResponse> forgotPassword(@RequestBody ForgotPasswordRequest
                                                                           forgotPasswordRequest) {
         ForgotPasswordResponse forgotPasswordResponse = authenticationService.processForgotPassword(
+                forgotPasswordRequest);
+
+        return ApiResponse.<ForgotPasswordResponse>builder()
+                .result(forgotPasswordResponse)
+                .build();
+    }
+
+    @Operation(summary = "Quên mật khẩu với otp", description = "API gửi email đặt lại mật khẩu với otp")
+    @PostMapping("/forgot-password-otp")
+    public ApiResponse<ForgotPasswordResponse> forgotPasswordWithOtp(@RequestBody ForgotPasswordRequest
+                                                                      forgotPasswordRequest) {
+        ForgotPasswordResponse forgotPasswordResponse = authenticationService.processForgotPasswordWithOtp(
                 forgotPasswordRequest);
 
         return ApiResponse.<ForgotPasswordResponse>builder()
@@ -117,6 +153,30 @@ public class AuthenticationController {
 
         return ApiResponse.<ResetPasswordResponse>builder()
                 .result(resetPasswordResponse)
+                .build();
+    }
+
+    @Operation(summary = "Đặt lại mật khẩu với otp", description = "API dùng để đặt lại mật khẩu(otp) với mã xác nhận")
+    @PostMapping("/reset-password-otp")
+    public ApiResponse<ResetPasswordResponse> resetPasswordWithOtp(@RequestBody ResetPasswordOtpRequest
+                                                                    resetPasswordOtpRequest,
+                                                                   @Parameter(hidden = true) Authentication authentication) {
+        ResetPasswordResponse resetPasswordResponse = authenticationService
+                .resetPasswordWithOtp(resetPasswordOtpRequest, authentication);
+
+        return ApiResponse.<ResetPasswordResponse>builder()
+                .result(resetPasswordResponse)
+                .build();
+    }
+
+    @Operation(summary = "xác thực otp để lấy lại mật khẩu", description = "API dùng để xác thực otp để lấy lại mật khẩu")
+    @PostMapping("/verify-otp-password")
+    public ApiResponse<String> VerifyOtpForPassword(@RequestParam String otp) {
+        String result = authenticationService
+                .verifyOtpWithResetPassWord(otp);
+
+        return ApiResponse.<String>builder()
+                .result(result)
                 .build();
     }
 

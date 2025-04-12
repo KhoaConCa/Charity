@@ -8,6 +8,8 @@
         <option value="$PROJECT_DIR$/profileService/pom.xml" />
         <option value="$PROJECT_DIR$/Apigateway/pom.xml" />
         <option value="$PROJECT_DIR$/notificationService/pom.xml" />
+        <option value="$PROJECT_DIR$/FileService/pom.xml" />
+        <option value="$PROJECT_DIR$/PostService/pom.xml" />
       </list>
     </option>
   </component>

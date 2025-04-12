@@ -1,9 +1,13 @@
 package com.tuandanh.profileService.service;
 
+import com.tuandanh.event.dto.NotificationEvent;
 import com.tuandanh.profileService.dto.request.FollowRequest;
 import com.tuandanh.profileService.dto.response.FollowResponse;
 import com.tuandanh.profileService.entity.Friendship;
 import com.tuandanh.profileService.entity.UserProfile;
+import com.tuandanh.profileService.enums.CHANEL;
+import com.tuandanh.profileService.enums.KafkaTopic;
+import com.tuandanh.profileService.enums.NotificationType;
 import com.tuandanh.profileService.exception.AppException;
 import com.tuandanh.profileService.exception.ErrorCode;
 import com.tuandanh.profileService.mapper.UserProfileMapper;
@@ -16,12 +20,15 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -33,6 +40,7 @@ public class FollowService {
     RedisService redisService;
     BlockService blockService;
     private String USER_ID = "userId";
+    KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
 
     public List<UserProfile> getFollowingProfiles(String profileId, Authentication authentication) {
@@ -87,6 +95,27 @@ public class FollowService {
         // Kiểm tra lại trong database xem đã follow chưa
         boolean afterFollow = userProfileRepository.isFollowing(profileId, followingId) > 0;
         log.info("Follow status after operation: {}", afterFollow ? "Success" : "Failed");
+
+        UserProfile senderProfile = userProfileRepository.findById(profileId).orElseThrow(
+                () -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+        String avatarUrl = senderProfile.getAvatarUrl();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("senderId", userProfile.getUserId());
+        params.put("userId", userId);
+        params.put("notificationType", NotificationType.FOLLOW_REQUEST);
+        params.put("avatarUrl", avatarUrl);
+        // Gửi sự kiện Kafka sau khi thao tác follow thành công
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .chanel(CHANEL.PUSH_NOTIFICATION)  // Ví dụ: thông báo push
+                .recipient(followingId)  // Người nhận thông báo là User B (được follow)
+                .param(params)  // Thông tin động, người theo dõi là User A
+                .subject("Có người theo dõi bạn")  // Tiêu đề thông báo
+                .body("Người dùng " + userId + " đã follow bạn.")  // Nội dung thông báo
+                .build();
+
+        // Gửi sự kiện đến Kafka (cần khai báo KafkaTemplate)
+        kafkaTemplate.send(KafkaTopic.USER_NEW_FOLLOW.getTopic(), notificationEvent);
 
         return FollowResponse.builder()
                 .result("follow successfully")

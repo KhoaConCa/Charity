@@ -52,7 +52,10 @@ public class SecurityConfig {
             "/oauth2/authorization/facebook",
             "/auth/send-verify-email",
             "/users/registration",
-            "/confirm-verify-email"
+            "/auth/confirm-verify-email",
+            "/health",
+            "/auth/send-verify-email-with-otp",
+            "/auth/confirm-verify-email-otp",
     };
 
     private final String[] PUBLIC_ENDPOINTS2 = {
