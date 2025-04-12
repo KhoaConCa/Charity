@@ -494,13 +494,11 @@ public class AuthenticationService {
         return "verify Otp successfully!";
     }
 
-    public ResetPasswordResponse resetPasswordWithOtp(ResetPasswordOtpRequest request, Authentication authentication) {
+    public ResetPasswordResponse resetPasswordWithOtp(ResetPasswordOtpRequest request) {
         String newPassword = request.getNewPassword();
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-        String USER_ID = "userId";
-        String userId = (String) jwt.getClaims().get(USER_ID);
 
-        Optional<User> optionalUser = userRepository.findById(userId);
+
+        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
 
         User user = optionalUser.get();
         user.setPassword(passwordEncoder.encode(newPassword));

@@ -159,10 +159,9 @@ public class AuthenticationController {
     @Operation(summary = "Đặt lại mật khẩu với otp", description = "API dùng để đặt lại mật khẩu(otp) với mã xác nhận")
     @PostMapping("/reset-password-otp")
     public ApiResponse<ResetPasswordResponse> resetPasswordWithOtp(@RequestBody ResetPasswordOtpRequest
-                                                                    resetPasswordOtpRequest,
-                                                                   @Parameter(hidden = true) Authentication authentication) {
+                                                                    resetPasswordOtpRequest) {
         ResetPasswordResponse resetPasswordResponse = authenticationService
-                .resetPasswordWithOtp(resetPasswordOtpRequest, authentication);
+                .resetPasswordWithOtp(resetPasswordOtpRequest);
 
         return ApiResponse.<ResetPasswordResponse>builder()
                 .result(resetPasswordResponse)
@@ -171,7 +170,7 @@ public class AuthenticationController {
 
     @Operation(summary = "xác thực otp để lấy lại mật khẩu", description = "API dùng để xác thực otp để lấy lại mật khẩu")
     @PostMapping("/verify-otp-password")
-    public ApiResponse<String> VerifyOtpForPassword(@RequestParam String otp) {
+    public ApiResponse<String> verifyOtpForPassword(@RequestParam String otp) {
         String result = authenticationService
                 .verifyOtpWithResetPassWord(otp);
 
