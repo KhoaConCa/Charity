@@ -1,0 +1,71 @@
+[33mcommit f34b93bd122366dec145c3d7f00032b3538b9b8c[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 30 15:59:37 2025 +0700
+
+    Ignore all [1;31m.env[m files
+
+[33mcommit aabb49e39d9fac55df3257507976af6f1a15a0fe[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 30 15:59:37 2025 +0700
+
+    Ignore all [1;31m.env[m files
+
+[33mcommit 7bd14d7c77f9340fe8d40a667872c194728643e2[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 30 15:55:40 2025 +0700
+
+     add[1;31m env[miroment variable
+
+[33mcommit 48805fcaab57f2b96cc4abc939e19fcb1b1e7752[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 30 15:55:40 2025 +0700
+
+     add[1;31m env[miroment variable
+
+[33mcommit c9894580a9c59f150d64f979e365eaf656a1df39[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 23 14:18:41 2025 +0700
+
+     automation [1;31m.env[m
+
+[33mcommit 2700f79ee0695a195f2582a0fc4755216a952d37[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 23 14:18:41 2025 +0700
+
+     automation [1;31m.env[m
+
+[33mcommit fe3dcde05898cca159f9bb03f8dfea5557373fb4[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 23 13:54:26 2025 +0700
+
+     add [1;31m.env[m automation
+
+[33mcommit 0454e7b8b7bf9e13318aaf7ea28d7660ec40bec3[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 23 13:54:26 2025 +0700
+
+     add [1;31m.env[m automation
+
+[33mcommit 58c08fb367b7512a097307769b010901b4c122ab[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 16 14:15:45 2025 +0700
+
+    Update .gitignore and untrack [1;31m.env[m file
+
+[33mcommit 8ed53e671da783856ffb8c70230fc5d24ea2e837[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 16 14:15:45 2025 +0700
+
+    Update .gitignore and untrack [1;31m.env[m file
+
+[33mcommit ba2968386b1869187490e3312cc729c0e3d00ae4[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 16 14:11:41 2025 +0700
+
+    Ignore [1;31m.env[m file and stop tracking it
+
+[33mcommit c66fa07f9113662d395d82ec32cb5c5b3c243f42[m
+Author: tuandanh <nguyentuandanhk15@siu.edu.vn>
+Date:   Sun Mar 16 14:11:41 2025 +0700
+
+    Ignore [1;31m.env[m file and stop tracking it
