@@ -13,6 +13,11 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: localhost:9094
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 aws3:
   access_key: ${AWS_ACCESS_KEY}
@@ -33,3 +38,7 @@ openapi:
   server:
     url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
+
+app:
+  service:
+    file: ${APP_SERVICE_FILE:http://localhost:8084/file}

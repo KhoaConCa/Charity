@@ -1,10 +1,15 @@
 package com.tuandanh.profileService.service;
 
 
+import com.tuandanh.event.dto.NotificationEvent;
 import com.tuandanh.profileService.dto.request.FriendshipRequest;
 import com.tuandanh.profileService.dto.response.FriendshipResponse;
 import com.tuandanh.profileService.entity.Friendship;
+import com.tuandanh.profileService.entity.UserProfile;
+import com.tuandanh.profileService.enums.CHANEL;
 import com.tuandanh.profileService.enums.FriendStatus;
+import com.tuandanh.profileService.enums.KafkaTopic;
+import com.tuandanh.profileService.enums.NotificationType;
 import com.tuandanh.profileService.exception.AppException;
 import com.tuandanh.profileService.exception.ErrorCode;
 import com.tuandanh.profileService.mapper.FriendshipMapper;
@@ -16,10 +21,17 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -33,6 +45,8 @@ public class FriendshipService {
     RedisService redisService;
     FriendshipMapper friendshipMapper;
     BlockService blockService;
+    KafkaTemplate<String, NotificationEvent> kafkaTemplate;
+    JwtDecoder jwtDecoder;
 
     public FriendStatus getFriendshipStatus(String targetProfileId, Authentication authentication) {
         String profileId = getProfileId(authentication);
@@ -48,8 +62,9 @@ public class FriendshipService {
 
 
 
-    public List<FriendshipResponse> getAllFriendshipsByProfileId(Authentication authentication) {
-        String profileId = getProfileId(authentication);
+    public List<FriendshipResponse> getAllFriendshipsByProfileId(String authorization) {
+
+        String profileId = getProfileIdFromToken(authorization);
 
         if (profileId == null) {
             throw new AppException(ErrorCode.PROFILE_NOT_EXISTED);
@@ -58,6 +73,20 @@ public class FriendshipService {
         return friendshipRepository.findAllByReceiverIdAndStatus(profileId, FriendStatus.ACCEPTED).stream()
                 .map(friendshipMapper::toFriendshipResponse).toList();
     }
+
+    private String getProfileIdFromToken(String authorization) {
+        if (StringUtils.isEmpty(authorization) || !authorization.startsWith("Bearer ")) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+        // Lấy token JWT sau "Bearer "
+        String token = authorization.substring(7);
+
+        // Giải mã token để lấy profileId (sử dụng thư viện JWT của Spring Security hoặc JWT)
+        Jwt jwt = jwtDecoder.decode(token);
+        String userId = jwt.getClaim("userId");
+        return redisService.getActiveProfile(userId);
+    }
+
 
     public List<FriendshipResponse> getAllFriendshipRequestsByProfileId(Authentication authentication) {
         String profileId = getProfileId(authentication);
@@ -146,6 +175,27 @@ public class FriendshipService {
         log.error("friendship : " + newRequest);
         friendshipRepository.save(newRequest);
 
+        UserProfile senderProfile = userProfileRepository.findById(senderId)
+                .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+        String avatarUrl = senderProfile.getAvatarUrl();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("senderId", senderId);
+        params.put("userId", receiverId);
+        params.put("notificationType", NotificationType.FRIEND_REQUEST);
+        params.put("avatarUrl", avatarUrl);
+
+        // Gửi thông báo qua Kafka cho receiver (User B) về lời mời kết bạn từ User A
+        NotificationEvent notificationEvent = NotificationEvent.builder()
+                .chanel(CHANEL.PUSH_NOTIFICATION)
+                .recipient(receiverId)  // Người nhận thông báo là receiverId
+                .param(params)  // Thêm thông tin động vào template (ví dụ: tên người gửi)
+                .subject("Lời mời kết bạn")
+                .body("User " + senderId + " đã gửi lời mời kết bạn cho bạn.")
+                .build();
+
+        kafkaTemplate.send(KafkaTopic.USER_NEW_FRIEND.getTopic(),notificationEvent);  // Gửi message qua Kafka
+
         return friendshipMapper.toFriendshipResponse(newRequest);
     }
 
@@ -211,8 +261,7 @@ public class FriendshipService {
 
     private String getProfileId(Authentication authentication) {
         String userId = userProfileService.getUserId(authentication);
-        String profileId = redisService.getActiveProfile(userId);
-        return profileId;
+        return redisService.getActiveProfile(userId);
     }
 
     @Transactional

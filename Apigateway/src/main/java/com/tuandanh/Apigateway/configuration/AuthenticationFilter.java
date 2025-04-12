@@ -3,6 +3,8 @@ package com.tuandanh.Apigateway.configuration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tuandanh.Apigateway.dto.ApiResponse;
+import com.tuandanh.Apigateway.exception.AppException;
+import com.tuandanh.Apigateway.exception.ErrorCode;
 import com.tuandanh.Apigateway.service.IdentityService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +52,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/oauth2/authorization/facebook",
             "/auth/send-verify-email",
             "/users/registration",
-            "/confirm-verify-email",
+            "/auth/confirm-verify-email",
+            "/health",
+            "/auth/send-verify-email-with-otp",
+            "/auth/confirm-verify-email-otp",
 
             // Swagger URLs
             "/swagger-ui.html",
@@ -103,11 +108,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                 .message("Unauthenticated")
                 .build();
 
-        String body = null;
+        String body;
         try {
             body = mapper.writeValueAsString(apiResponse);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.FAILED_SERIALIZE_RESPONSE);
         }
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);

@@ -37,7 +37,8 @@ public class SecurityConfig {
     private String signerKey;
 
     private final String[] PUBLIC_ENDPOINTS1 = {
-        "/internal/userProfiles"
+        "/internal/userProfiles",
+            "/health"
     };
 
     private final String[] PUBLIC_ENDPOINTS2 = {

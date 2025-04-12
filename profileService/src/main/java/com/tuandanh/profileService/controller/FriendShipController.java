@@ -12,11 +12,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/friends")
 @RequiredArgsConstructor
@@ -45,8 +47,9 @@ public class FriendShipController {
     @Operation(summary = "Lấy danh sách bạn bè", description = "API lấy danh sách tất cả bạn bè của người dùng hiện tại")
     @GetMapping
     public ApiResponse<List<FriendshipResponse>> getFriends(
-            @Parameter(hidden = true) Authentication authentication) {
-        List<FriendshipResponse> friendshipResponses = friendshipService.getAllFriendshipsByProfileId(authentication);
+            @RequestHeader("Authorization") String authorization) {
+
+        List<FriendshipResponse> friendshipResponses = friendshipService.getAllFriendshipsByProfileId(authorization);
         return ApiResponse.<List<FriendshipResponse>>builder().result(friendshipResponses).build();
     }
 
