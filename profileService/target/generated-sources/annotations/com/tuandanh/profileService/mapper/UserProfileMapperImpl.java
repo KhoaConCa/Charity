@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.6 (Oracle Corporation)"
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.42.0.z20250331-1358, environment: Java 21.0.6 (Eclipse Adoptium)"
 )
 @Component
 public class UserProfileMapperImpl implements UserProfileMapper {
@@ -22,11 +22,11 @@ public class UserProfileMapperImpl implements UserProfileMapper {
 
         UserProfile.UserProfileBuilder userProfile = UserProfile.builder();
 
-        userProfile.userId( profileCreationRequest.getUserId() );
-        userProfile.username( profileCreationRequest.getUsername() );
         userProfile.firstName( profileCreationRequest.getFirstName() );
         userProfile.lastName( profileCreationRequest.getLastName() );
         userProfile.location( profileCreationRequest.getLocation() );
+        userProfile.userId( profileCreationRequest.getUserId() );
+        userProfile.username( profileCreationRequest.getUsername() );
 
         return userProfile.build();
     }
@@ -39,15 +39,15 @@ public class UserProfileMapperImpl implements UserProfileMapper {
 
         ProfileResponse.ProfileResponseBuilder profileResponse = ProfileResponse.builder();
 
-        profileResponse.profileId( userProfile.getProfileId() );
-        profileResponse.userId( userProfile.getUserId() );
-        profileResponse.username( userProfile.getUsername() );
+        profileResponse.avatarUrl( userProfile.getAvatarUrl() );
+        profileResponse.createdAt( userProfile.getCreatedAt() );
         profileResponse.firstName( userProfile.getFirstName() );
         profileResponse.lastName( userProfile.getLastName() );
-        profileResponse.avatarUrl( userProfile.getAvatarUrl() );
         profileResponse.location( userProfile.getLocation() );
-        profileResponse.createdAt( userProfile.getCreatedAt() );
+        profileResponse.profileId( userProfile.getProfileId() );
         profileResponse.updatedAt( userProfile.getUpdatedAt() );
+        profileResponse.userId( userProfile.getUserId() );
+        profileResponse.username( userProfile.getUsername() );
 
         return profileResponse.build();
     }
@@ -58,9 +58,9 @@ public class UserProfileMapperImpl implements UserProfileMapper {
             return;
         }
 
-        userProfile.setUsername( profileUpdateRequest.getUsername() );
         userProfile.setFirstName( profileUpdateRequest.getFirstName() );
         userProfile.setLastName( profileUpdateRequest.getLastName() );
         userProfile.setLocation( profileUpdateRequest.getLocation() );
+        userProfile.setUsername( profileUpdateRequest.getUsername() );
     }
 }
