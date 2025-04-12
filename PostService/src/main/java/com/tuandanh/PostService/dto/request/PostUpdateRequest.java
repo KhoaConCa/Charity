@@ -1,0 +1,21 @@
+package com.tuandanh.PostService.dto.request;
+
+import com.tuandanh.PostService.enums.Privacy;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import org.springframework.data.geo.Point;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class PostUpdateRequest {
+    String profileId;
+    String content;
+    List<String> tags;
+    Privacy privacy;
+    Point point;
+}
