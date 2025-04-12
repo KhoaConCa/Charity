@@ -13,7 +13,7 @@ public class ProfileServiceApplication {
 	public static void main(String[] args) {
 		// Load .env file
 		Dotenv dotenv = Dotenv.configure()
-				.directory("profileService") // Chỉ định thư mục chứa .env
+				.directory("/app/profile") // Chỉ định thư mục chứa .env
 				.filename(".env") // Đảm bảo tên file đúng
 				.load();
 		dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
