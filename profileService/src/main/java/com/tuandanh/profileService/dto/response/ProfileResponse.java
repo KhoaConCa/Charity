@@ -21,6 +21,7 @@ public class ProfileResponse {
     String lastName;
     String avatarUrl;
     String location;
+    String bio;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     boolean isActive;
