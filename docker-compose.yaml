@@ -100,7 +100,7 @@ services:
 
   profile-service:
     container_name: profile-service
-    image: richyotd/charity-profile:1.2
+    image: richyotd/charity-profile:1.3
     expose:
       - "8081"
     networks:
@@ -121,22 +121,22 @@ services:
     #   retries: 3
     #   start_period: 30s
 
-  # notification-service:
-  #   container_name: notification-service
-  #   image: richyotd/charity-notification:1.1
-  #   expose:
-  #     - "8082"
-  #   networks:
-  #     - backend
-  #     - database
-  #     - messaging
-  #   depends_on:
-  #     mongo:
-  #       condition: service_started
-  #     redis:
-  #       condition: service_started
-  #     kafka:
-  #       condition: service_started
+  notification-service:
+    container_name: notification-service
+    image: richyotd/charity-notification:1.2
+    expose:
+      - "8082"
+    networks:
+      - backend
+      - database
+      - messaging
+    depends_on:
+      mongo:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
 
   post-service:
     container_name: post-service
