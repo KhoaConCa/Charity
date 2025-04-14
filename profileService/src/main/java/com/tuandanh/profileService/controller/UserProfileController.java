@@ -50,7 +50,7 @@ public class UserProfileController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<ProfileResponse> createProfile(
             @RequestPart("profile") @Valid ProfileCreationRequest profileCreationRequest,
-            @RequestPart("avatar") MultipartFile avatarFile) throws IOException {
+            @RequestPart("avatar") MultipartFile avatarFile) {
 
         ProfileResponse profileResponse = userProfileService.createProfile(profileCreationRequest, avatarFile);
         return ApiResponse.<ProfileResponse>builder().result(profileResponse).build();

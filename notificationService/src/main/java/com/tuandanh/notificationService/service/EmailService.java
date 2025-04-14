@@ -23,10 +23,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EmailService {
     @Value("${email.apiKey}")
-    private static  String API_KEY;
+    private   String API_KEY;
 
     private final EmailClient emailClient;
     private final SpringTemplateEngine templateEngine;
+
+    public String print(){
+        return API_KEY;
+    }
 
 
 
@@ -58,7 +62,9 @@ public class EmailService {
 
     public EmailResponse sendEmail(EmailRequest emailRequest) {
         try {
-            return emailClient.sendEmail(API_KEY, emailRequest);
+            EmailResponse response = emailClient.sendEmail(API_KEY, emailRequest);
+            log.info("Email sent successfully. Response: {}", response);
+            return response;
         } catch (FeignException e) {
             log.error("Failed to send email: {}", e.getMessage());
             throw new AppException(ErrorCode.CANNOT_SEND_EMAIL);
