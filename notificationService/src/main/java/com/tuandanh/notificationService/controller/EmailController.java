@@ -27,4 +27,10 @@ public class EmailController {
                 .result(emailService.sendEmail(request))
                 .build();
     }
+    @PostMapping("/print")
+    public ApiResponse<String> print(){
+        return ApiResponse.<String>builder()
+                .result(emailService.print())
+                .build();
+    }
 }
