@@ -56,6 +56,9 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/health",
             "/auth/send-verify-email-with-otp",
             "/auth/confirm-verify-email-otp",
+            "/auth/forgot-password-otp",
+            "/auth/reset-password-otp",
+            "/auth/verify-otp-password",
 
             // Swagger URLs
             "/swagger-ui.html",

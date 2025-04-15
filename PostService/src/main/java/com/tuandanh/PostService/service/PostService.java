@@ -1,18 +1,21 @@
 package com.tuandanh.PostService.service;
 import com.tuandanh.PostService.dto.ApiResponse;
+import com.tuandanh.PostService.dto.PageResponse;
 import com.tuandanh.PostService.dto.request.PostUpdateRequest;
 import com.tuandanh.PostService.dto.response.FileResponse;
 import com.tuandanh.PostService.dto.response.FriendshipResponse;
 import com.tuandanh.PostService.dto.response.PostResponse;
-import com.tuandanh.PostService.dto.Reaction;
 import com.tuandanh.PostService.dto.request.PostCreationRequest;
 import com.tuandanh.PostService.dto.response.ProfileResponse;
 import com.tuandanh.PostService.entity.Post;
+import com.tuandanh.PostService.entity.Reaction;
 import com.tuandanh.PostService.enums.*;
 import com.tuandanh.PostService.exception.AppException;
 import com.tuandanh.PostService.exception.ErrorCode;
 import com.tuandanh.PostService.mapper.PostMapper;
+import com.tuandanh.PostService.repository.CommentRepository;
 import com.tuandanh.PostService.repository.PostRepository;
+import com.tuandanh.PostService.repository.ReactionRepository;
 import com.tuandanh.PostService.repository.httpClient.FileClient;
 import com.tuandanh.PostService.repository.httpClient.UserProfileClient;
 import com.tuandanh.event.dto.NotificationEvent;
@@ -20,6 +23,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -37,6 +43,8 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PostService {
     PostRepository postRepository;
+    ReactionRepository reactionRepository;
+    CommentRepository commentRepository;
     PostMapper postMapper;
     KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
@@ -61,8 +69,6 @@ public class PostService {
                 .tags(postCreationRequest.getTags())
                 .privacy(postCreationRequest.getPrivacy())
                 .point(postCreationRequest.getPoint())
-                .comments(new ArrayList<>())
-                .reactions(new ArrayList<>())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -77,21 +83,26 @@ public class PostService {
             post.setFileIds(response.getResult());
         }
 
+        // 4. Lưu vào DB 1 lần duy nhất
+        Post savedPost = postRepository.save(post);
+
         // 3. Nếu public, thêm reaction mặc định
         if (postCreationRequest.getPrivacy() == Privacy.PUBLIC) {
-            post.getReactions().add(
-                    Reaction.builder()
-                            .profileId(postCreationRequest.getProfileId())
-                            .reactionType(ReactionType.LIKE)
-                            .build()
-            );
+            Reaction defaultReaction = Reaction.builder()
+                    .postId(savedPost.getId())
+                    .reactionType(ReactionType.LIKE)
+                    .profileId(postCreationRequest.getProfileId())
+                    .build();
+            reactionRepository.save(defaultReaction);
         }
-        Set<String> recipients = new HashSet<>(postCreationRequest.getTags());
+        Set<String> recipients = new HashSet<>(
+                Optional.ofNullable(postCreationRequest.getTags()).orElse(Collections.emptyList())
+        );
+
 
 //        sendTagNotification(post, recipients);
 
-        // 4. Lưu vào DB 1 lần duy nhất
-        Post savedPost = postRepository.save(post);
+
 
         // 5. Trả về response
         return postMapper.toPostResponse(savedPost);
@@ -237,17 +248,31 @@ public class PostService {
     }
 
         @PreAuthorize("hasRole('ADMIN')")
-    public List<PostResponse> getAllPosts(){
-        return postRepository.findAll().stream()
-                .map(postMapper::toPostResponse)
-                .toList();
+    public PageResponse<PostResponse> getAllPosts(int page, int size){
+            Sort sort = Sort.by("createdAt").descending();
+            Pageable pageable = PageRequest.of(page - 1, size, sort);
+            var pageData = postRepository.findAll(pageable);
+
+            return PageResponse.<PostResponse>builder()
+                    .currentPage(page)
+                    .pageSize(pageData.getSize())
+                    .totalElements(pageData.getTotalElements())
+                    .data(pageData.getContent().stream().map(postMapper::toPostResponse).toList())
+                    .build();
     }
 
 
-    public List<PostResponse> getAllPostsByProfileId(String profileId){
-        return postRepository.findByProfileId(profileId).stream()
-                .map(postMapper::toPostResponse)
-                .toList();
+    public PageResponse<PostResponse> getAllPostsByProfileId(String profileId, int page, int size){
+        Sort sort = Sort.by("createdAt").descending();
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        var pageData = postRepository.findAllByProfileId(profileId, pageable);
+
+        return PageResponse.<PostResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalElements(pageData.getTotalElements())
+                .data(pageData.getContent().stream().map(postMapper::toPostResponse).toList())
+                .build();
     }
 
     public PostResponse getPostByPostId(String postId){
@@ -255,61 +280,22 @@ public class PostService {
                 .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND)));
     }
 
+    public PageResponse<PostResponse> getMyPosts(int page, int size, Authentication authentication){
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String userId = jwt.getClaim("userId");
+        String activeProfileId = userProfileClient.getActiveProfile(userId).getResult();
 
-//    @Transactional
-//    public PostResponse updatePost(String postId, PostUpdateRequest postUpdateRequest, List<MultipartFile> mediaFiles) throws IOException {
-//        // Tìm bài viết cũ
-//        Post post = postRepository.findById(postId)
-//                .orElseThrow(() -> new PostNotFoundException("Post not found"));
-//
-//        // 1. Cập nhật các trường có giá trị mới
-//        if (postUpdateRequest.getContent() != null) {
-//            post.setContent(postUpdateRequest.getContent());
-//        }
-//
-//        if (postUpdateRequest.getTags() != null && !postUpdateRequest.getTags().isEmpty()) {
-//            post.setTags(postUpdateRequest.getTags());
-//        }
-//
-//        if (postUpdateRequest.getPrivacy() != null) {
-//            post.setPrivacy(postUpdateRequest.getPrivacy());
-//        }
-//
-//        if (postUpdateRequest.getPoint() != null) {
-//            post.setPoint(postUpdateRequest.getPoint());
-//        }
-//
-//        // 2. Upload media (nếu có) và thêm vào bài viết
-//        if (mediaFiles != null && !mediaFiles.isEmpty()) {
-//            List<Media> mediaList = new ArrayList<>();
-//            for (MultipartFile mediaFile : mediaFiles) {
-//                // Gửi yêu cầu upload file qua FileClient
-//                String fileUrl = fileClient.uploadFile(mediaFile, post.getProfileId(), FileType.POST_MEDIA).getResult();
-//
-//                // Tạo đối tượng Media với các thông tin cần thiết
-//                Media mediaDto = Media.builder()
-//                        .fileName(mediaFile.getOriginalFilename())
-//                        .fileUrl(fileUrl)
-//                        .fileType(mediaFile.getContentType()) // Ví dụ: "image/jpeg", "video/mp4"
-//                        .size(mediaFile.getSize())
-//                        .build();
-//
-//                // Thêm vào danh sách media
-//                mediaList.add(mediaDto);
-//            }
-//            // Thêm vào bài viết
-//            post.getMedia().addAll(mediaList);  // Không ghi đè, chỉ thêm vào
-//        }
-//
-//        // 3. Cập nhật lại thời gian sửa đổi
-//        post.setUpdatedAt(LocalDateTime.now());
-//
-//        // 4. Lưu bài viết đã cập nhật
-//        Post savedPost = postRepository.save(post);
-//
-//        // 5. Trả về bài viết đã cập nhật
-//        return postMapper.toPostResponse(savedPost);
-//    }
+        Sort sort = Sort.by("createdAt").descending();
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        var pageData = postRepository.findAllByProfileId(activeProfileId, pageable);
+
+        return PageResponse.<PostResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalElements(pageData.getTotalElements())
+                .data(pageData.getContent().stream().map(postMapper::toPostResponse).toList())
+                .build();
+    }
 
 
 
