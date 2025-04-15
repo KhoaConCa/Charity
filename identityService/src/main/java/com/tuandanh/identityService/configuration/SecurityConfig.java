@@ -56,6 +56,9 @@ public class SecurityConfig {
             "/health",
             "/auth/send-verify-email-with-otp",
             "/auth/confirm-verify-email-otp",
+            "/auth/forgot-password-otp",
+            "/auth/reset-password-otp",
+            "/auth/verify-otp-password"
     };
 
     private final String[] PUBLIC_ENDPOINTS2 = {

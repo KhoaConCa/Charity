@@ -297,7 +297,7 @@ public class AuthenticationService {
         NotificationEvent notificationEvent = NotificationEvent.builder()
                 .recipient(verifyEmailRequest.getEmail())
                 .chanel(CHANEL.EMAIL)
-                .subject(KafkaTopic.USER_TWO_FACTOR_AUTH.getTopic())
+                .subject(KafkaTopic.USER_VERIFY_EMAIL.getTopic())
                 .body(KafkaTopic.USER_TWO_FACTOR_AUTH.getDes())
                 .templateCode("email/verify-email-chicken")// sửa sau
                 .param(Map.of("otp_code", otp))
@@ -441,7 +441,7 @@ public class AuthenticationService {
         NotificationEvent notificationEvent = NotificationEvent.builder()
                 .recipient(verifyEmailRequest.getEmail())
                 .chanel(CHANEL.EMAIL)
-                .subject(KafkaTopic.USER_TWO_FACTOR_AUTH.getTopic())
+                .subject(KafkaTopic.USER_VERIFY_EMAIL.getTopic())
                 .body(KafkaTopic.USER_TWO_FACTOR_AUTH.getDes())
                 .templateCode("email/verify-email-chicken")// sửa sau
                 .param(Map.of("otp_code", otp))
@@ -474,12 +474,13 @@ public class AuthenticationService {
         userRepository.save(user);
         redisService.deleteToken(token, TokenType.RESET_PASSWORD); // Invalidate token after use
 
+
         return ResetPasswordResponse.builder()
                 .result("Password changed")
                 .build();
     }
 
-    public String verifyOtpWithResetPassWord(String otp){
+    public VerifyEmailWithOtpResponse verifyOtpWithResetPassWord(String otp){
         String email = redisService.getEmailByOtp(otp, TokenType.RESET_PASSWORD);
         if (email == null) {
             throw new IllegalArgumentException("Invalid or expired otp.");
@@ -491,18 +492,36 @@ public class AuthenticationService {
         }
 
         redisService.deleteToken(otp, TokenType.RESET_PASSWORD); // Invalidate otp after use
-        return "verify Otp successfully!";
+
+        String resetToken = UUID.randomUUID().toString();
+        redisService.storeToken(resetToken, email, TokenType.RESET_PASSWORD);
+
+        return VerifyEmailWithOtpResponse.builder()
+                .result("Verify OTP successfully")
+                .resetToken(resetToken)
+                .build();
     }
 
-    public ResetPasswordResponse resetPasswordWithOtp(ResetPasswordOtpRequest request) {
-        String newPassword = request.getNewPassword();
+    public ResetPasswordResponse resetPasswordWithOtp(ResetPasswordOtpRequest resetPasswordOtpRequest) {
+        String token = resetPasswordOtpRequest.getResetToken();
+        String newPassword = resetPasswordOtpRequest.getNewPassword();
 
+        String email = redisService.getValueByToken(token, TokenType.RESET_PASSWORD);
+        if (email == null) {
+            throw new IllegalArgumentException("Invalid or expired reset token.");
+        }
 
-        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new IllegalArgumentException("User not found.");
+        }
 
         User user = optionalUser.get();
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+
+        // ✅ Xoá token sau khi sử dụng
+        redisService.deleteToken(token, TokenType.RESET_PASSWORD);
 
         return ResetPasswordResponse.builder()
                 .result("Password changed")

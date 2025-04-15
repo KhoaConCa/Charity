@@ -1,7 +1,5 @@
 package com.tuandanh.PostService.mapper;
 
-import com.tuandanh.PostService.dto.Comment;
-import com.tuandanh.PostService.dto.Reaction;
 import com.tuandanh.PostService.dto.response.PostResponse;
 import com.tuandanh.PostService.entity.Post;
 import java.util.ArrayList;
@@ -24,26 +22,19 @@ public class PostMapperImpl implements PostMapper {
 
         PostResponse.PostResponseBuilder postResponse = PostResponse.builder();
 
+        postResponse.id( post.getId() );
         postResponse.profileId( post.getProfileId() );
         postResponse.content( post.getContent() );
         List<String> list = post.getFileIds();
         if ( list != null ) {
             postResponse.fileIds( new ArrayList<String>( list ) );
         }
-        List<Reaction> list1 = post.getReactions();
+        List<String> list1 = post.getTags();
         if ( list1 != null ) {
-            postResponse.reactions( new ArrayList<Reaction>( list1 ) );
-        }
-        List<String> list2 = post.getTags();
-        if ( list2 != null ) {
-            postResponse.tags( new ArrayList<String>( list2 ) );
+            postResponse.tags( new ArrayList<String>( list1 ) );
         }
         postResponse.privacy( post.getPrivacy() );
         postResponse.point( post.getPoint() );
-        List<Comment> list3 = post.getComments();
-        if ( list3 != null ) {
-            postResponse.comments( new ArrayList<Comment>( list3 ) );
-        }
         postResponse.createdAt( post.getCreatedAt() );
         postResponse.updatedAt( post.getUpdatedAt() );
 

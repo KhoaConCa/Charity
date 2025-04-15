@@ -1,26 +1,27 @@
-package com.tuandanh.PostService.dto.response;
+package com.tuandanh.PostService.entity;
 
-import com.tuandanh.PostService.enums.Privacy;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.geo.Point;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Document(collection = "comments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PostResponse {
+public class Comment {
+    @MongoId
     String id;
     String profileId;
+    String postId;
+    String parentId;
     String content;
     List<String> fileIds;
-    List<String> tags;
-    Privacy privacy;
-    Point point;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

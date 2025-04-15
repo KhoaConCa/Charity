@@ -1,6 +1,7 @@
 package com.tuandanh.PostService.controller;
 
 import com.tuandanh.PostService.dto.ApiResponse;
+import com.tuandanh.PostService.dto.PageResponse;
 import com.tuandanh.PostService.dto.request.PostCreationRequest;
 import com.tuandanh.PostService.dto.request.PostUpdateRequest;
 import com.tuandanh.PostService.dto.response.PostResponse;
@@ -10,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,19 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PostController {
     PostService postService;
+
+    @GetMapping("/myPosts")
+    public ApiResponse<PageResponse<PostResponse>> getMyPosts(
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+            @Parameter(hidden = true) Authentication authentication
+    ) {
+        PageResponse<PostResponse> postResponses = postService.getMyPosts(page, size, authentication);
+
+        return ApiResponse.<PageResponse<PostResponse>>builder()
+                .result(postResponses)
+                .build();
+    }
 
     // API tạo bài viết với file (multipart/form-data)
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -63,10 +78,14 @@ public class PostController {
     }
 
     @GetMapping("/getAllPosts")
-    public ApiResponse<List<PostResponse>> getAllPosts(){
-        List<PostResponse> posts = postService.getAllPosts();
+    public ApiResponse<PageResponse<PostResponse>> getAllPosts(
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size
 
-        return ApiResponse.<List<PostResponse>>builder()
+    ){
+        PageResponse<PostResponse> posts = postService.getAllPosts(page, size);
+
+        return ApiResponse.<PageResponse<PostResponse>>builder()
                 .result(posts)
                 .build();
     }
@@ -81,14 +100,14 @@ public class PostController {
     }
 
     @GetMapping("/getPostsByProfileId/{profileId}")
-    public ApiResponse<List<PostResponse>> getPostsByProfileId(@PathVariable String profileId){
-        List<PostResponse> postResponses = postService.getAllPostsByProfileId(profileId);
+    public ApiResponse<PageResponse<PostResponse>> getPostsByProfileId(@PathVariable String profileId,
+        @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+         @RequestParam(value = "size", required = false, defaultValue = "10") int size
+    ){
+        PageResponse<PostResponse> postResponses = postService.getAllPostsByProfileId(profileId, page, size);
 
-        return ApiResponse.<List<PostResponse>>builder()
+        return ApiResponse.<PageResponse<PostResponse>>builder()
                 .result(postResponses)
                 .build();
     }
-
-
-
 }

@@ -1,4 +1,4 @@
-package com.tuandanh.identityService.dto.request;
+package com.tuandanh.identityService.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ResetPasswordOtpRequest {
+public class VerifyEmailWithOtpResponse {
+    String result;
     String resetToken;
-    String newPassword;
 }
