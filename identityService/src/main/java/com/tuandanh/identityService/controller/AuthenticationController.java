@@ -170,12 +170,12 @@ public class AuthenticationController {
 
     @Operation(summary = "xác thực otp để lấy lại mật khẩu", description = "API dùng để xác thực otp để lấy lại mật khẩu")
     @PostMapping("/verify-otp-password")
-    public ApiResponse<String> verifyOtpForPassword(@RequestParam String otp) {
-        String result = authenticationService
+    public ApiResponse<VerifyEmailWithOtpResponse> verifyOtpForPassword(@RequestParam String otp) {
+        VerifyEmailWithOtpResponse verifyEmailWithOtpResponse = authenticationService
                 .verifyOtpWithResetPassWord(otp);
 
-        return ApiResponse.<String>builder()
-                .result(result)
+        return ApiResponse.<VerifyEmailWithOtpResponse>builder()
+                .result(verifyEmailWithOtpResponse)
                 .build();
     }
 

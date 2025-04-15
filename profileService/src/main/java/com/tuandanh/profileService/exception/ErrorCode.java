@@ -37,6 +37,7 @@ public enum ErrorCode {
     CANNOT_FOLLOW_DUE_TO_BLOCK(1030, "Can't follow due to block", HttpStatus.BAD_REQUEST),
     CANNOT_ADD_FRIEND_DUE_TO_BLOCK(1031, "Can't add friend due to block", HttpStatus.BAD_REQUEST),
     INVALID_TOKEN(1032, "Invalid token", HttpStatus.BAD_REQUEST),
+    BIO_INVALID(1033, "Invalid Bio", HttpStatus.BAD_REQUEST),
     ;
     private final int code;
     private final String message;

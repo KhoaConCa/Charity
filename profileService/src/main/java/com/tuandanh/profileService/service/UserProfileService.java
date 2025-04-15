@@ -60,6 +60,7 @@ public class UserProfileService {
         }
 
         redisService.setActiveProfile(userId, profileId);
+
     }
 
     public String getUserId(Authentication authentication) {
