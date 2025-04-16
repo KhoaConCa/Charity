@@ -8,35 +8,35 @@ spring:
     gateway:
       routes:
         - id: user-service
-          uri: ${USER_SERVICE_URI:http://localhost:8080}
+          uri: ${USER_SERVICE_URI:http://identity-service:8080}
           predicates:
             - Path=${app.api-prefix}/identity/**
           filters:
             - StripPrefix=2
 
         - id: profile-service
-          uri: ${PROFILE_SERVICE_URI:http://localhost:8081}
+          uri: ${PROFILE_SERVICE_URI:http://profile-service:8081}
           predicates:
             - Path=${app.api-prefix}/profile/**
           filters:
             - StripPrefix=2
 
         - id: notification-service
-          uri: ${NOTIFICATION_SERVICE_URI:http://localhost:8082}
+          uri: ${NOTIFICATION_SERVICE_URI:http://notification-service:8082}
           predicates:
             - Path=${app.api-prefix}/notification/**
           filters:
             - StripPrefix=2
 
         - id: post-service
-          uri: ${POST_SERVICE_URI:http://localhost:8083}
+          uri: ${POST_SERVICE_URI:http://post-service:8083}
           predicates:
             - Path=${app.api-prefix}/post/**
           filters:
             - StripPrefix=2
 
         - id: file-service
-          uri: ${FILE_SERVICE_URI:http://localhost:8084}
+          uri: ${FILE_SERVICE_URI:http://file-service:8084}
           predicates:
             - Path=${app.api-prefix}/file/**
           filters:
@@ -58,4 +58,5 @@ server:
   port: ${SERVER_PORT:8888}
 
 identity:
-  url: ${IDENTITY_URL:http://localhost:8080/identity}
+  url: ${IDENTITY_URL:http://identity-service:8080/identity}
+
