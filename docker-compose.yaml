@@ -123,7 +123,7 @@ services:
 
   notification-service:
     container_name: notification-service
-    image: richyotd/charity-notification:1.5
+    image: richyotd/charity-notification:1.7
     expose:
       - "8082"
     networks:
