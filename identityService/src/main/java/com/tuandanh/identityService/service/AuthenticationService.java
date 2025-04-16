@@ -236,7 +236,7 @@ public class AuthenticationService {
         String token = UUID.randomUUID().toString();
         redisService.storeToken(token, email, TokenType.VERIFY_EMAIL); // Lưu token xác nhận email
 
-        String verifyLink = "http://localhost:8080/api/auth/verify-email?token=" + token;
+        String verifyLink = "http://identity-service:8080/api/auth/verify-email?token=" + token;
 //        emailService.sendVerifyEmail(email, verifyLink);
         NotificationEvent notificationEvent = NotificationEvent.builder()
                 .chanel(CHANEL.EMAIL)
@@ -392,7 +392,7 @@ public class AuthenticationService {
         String token = UUID.randomUUID().toString();
         redisService.storeToken(token, email, TokenType.RESET_PASSWORD); // Store token in Redis
 
-        String resetLink = "http://localhost:8080/api/auth/reset-password?token=" + token;
+        String resetLink = "http://identity-service:8080/api/auth/reset-password?token=" + token;
 //        emailService.sendPasswordResetEmail(email, resetLink);
         NotificationEvent notificationEvent = NotificationEvent.builder()
                 .chanel(CHANEL.EMAIL)

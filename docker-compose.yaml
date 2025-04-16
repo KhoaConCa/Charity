@@ -141,7 +141,7 @@ services:
 
   post-service:
     container_name: post-service
-    image: richyotd/charity-post:1.4
+    image: richyotd/charity-post:1.5
     expose:
       - "8083"
     networks:
