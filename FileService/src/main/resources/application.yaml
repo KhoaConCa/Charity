@@ -17,9 +17,9 @@ spring:
     name: notification-service
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://root:root@localhost:27017/file-service?authSource=admin}
+      uri: ${MONGODB_URI:mongodb://root:root@mongo:27017/file-service?authSource=admin}
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9094}
     consumer:
       group-id: notification-group
       auto-offset-reset: earliest
@@ -36,6 +36,6 @@ openapi:
     name: ${OPENAPI_LICENSE_NAME:API License}
     url: ${OPENAPI_LICENSE_URL:https://www.facebook.com/nguyentuan.danh.167/}
   server:
-    url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
+    url: ${OPENAPI_SERVER_URL:http://identity-service:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
 
