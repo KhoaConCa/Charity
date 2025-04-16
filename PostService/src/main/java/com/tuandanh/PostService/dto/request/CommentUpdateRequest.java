@@ -1,2 +1,16 @@
-package com.tuandanh.PostService.dto.request;public class CommentUpdateRequest {
+package com.tuandanh.PostService.dto.request;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class CommentUpdateRequest {
+    String content;
+    List<String> tags;
 }

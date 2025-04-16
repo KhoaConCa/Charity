@@ -22,6 +22,7 @@ public class Comment {
     String parentId;
     String content;
     List<String> fileIds;
+    List<String> tags;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

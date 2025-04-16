@@ -9,7 +9,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ReactionCreationRequest {
+public class ReactionDeletionRequest {
     String postId;
     ReactionType reactionType;
 }
