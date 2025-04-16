@@ -5,16 +5,16 @@ server:
 
 spring:
   neo4j:
-    uri: ${NEO4J_URI:bolt://localhost:7687}
+    uri: ${NEO4J_URI:bolt://neo4j:7687}
     authentication:
       username: ${NEO4J_USERNAME:neo4j}
       password: ${NEO4J_PASSWORD:password}
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
   kafka:
-    bootstrap-servers: localhost:9094
+    bootstrap-servers: kafka:9094
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -36,9 +36,9 @@ openapi:
     name: ${OPENAPI_LICENSE_NAME:API License}
     url: ${OPENAPI_LICENSE_URL:https://www.facebook.com/nguyentuan.danh.167/}
   server:
-    url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
+    url: ${OPENAPI_SERVER_URL:http://identity-service:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
 
 app:
   service:
-    file: ${APP_SERVICE_FILE:http://localhost:8084/file}
+    file: ${APP_SERVICE_FILE:http://file-service:8084/file}
