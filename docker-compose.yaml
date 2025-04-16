@@ -1,0 +1,261 @@
+version: '3.8'
+
+# ===============================
+# REGION: Networks Configuration
+networks:
+  frontend:
+    name: frontend
+    driver: bridge
+  backend:
+    name: backend
+    driver: bridge
+  database:
+    name: database
+    driver: bridge
+  messaging:
+    name: messaging
+    driver: bridge
+# ENDREGION
+# ===============================
+
+# ===============================
+# REGION: Volumes Configuration
+volumes:
+  neo4j-data:
+    name: neo4j-data
+  mysql-data:
+    name: mysql-data
+  mongodb-data:
+    name: mongodb-data
+  redis-data:
+    name: redis-data
+  kafka-data:
+    name: kafka-data
+# ENDREGION
+# ===============================
+
+services:
+  # ===============================
+  # REGION: Frontend Configuration
+  nginx:
+    container_name: nginx
+    image: richyotd/charity-nginx:1.7
+    #image: richyotd/nginx-local:1.0
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - gateway-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+  # ENDREGION
+  # ===============================
+
+  # ===============================
+  # REGION: Backend Services Configuration
+  gateway-service:
+    container_name: gateway-service
+    image: richyotd/charity-gateway:1.7
+    expose:
+      - "8888"
+    networks:
+      - backend
+      - database
+      - messaging
+    depends_on:
+      - identity-service
+      - profile-service
+      - notification-service
+      - post-service
+      - file-service
+
+  identity-service:
+    container_name: identity-service
+    image: richyotd/charity-identity:2.0
+    expose:
+      - "8080"
+    networks:
+      - backend
+      - database
+      - messaging
+    depends_on:
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "https://baodungkhoaphu.online/api/v1.0.0/identity/health"]
+    #   interval: 60s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 30s
+
+  profile-service:
+    container_name: profile-service
+    image: richyotd/charity-profile:1.6
+    expose:
+      - "8081"
+    networks:
+      - backend
+      - database
+      - messaging
+    depends_on:
+      neo4j:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "https://baodungkhoaphu.online/api/v1.0.0/profile/health"]
+    #   interval: 60s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 30s
+
+  notification-service:
+    container_name: notification-service
+    image: richyotd/charity-notification:1.9
+    expose:
+      - "8082"
+    networks:
+      - backend
+      - database
+      - messaging
+    depends_on:
+      mongo:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+
+  post-service:
+    container_name: post-service
+    image: richyotd/charity-post:1.4
+    expose:
+      - "8083"
+    networks:
+      - backend
+      - database
+      - messaging
+    depends_on:
+      mongo:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "https://baodungkhoaphu.online/api/v1.0.0/post/health"]
+    #   interval: 60s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 30s
+
+  file-service:
+    container_name: file-service
+    image: richyotd/charity-file:1.3
+    expose:
+      - "8084"
+    networks:
+      - backend
+      - database
+      - messaging
+    depends_on:
+      mongo:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "https://baodungkhoaphu.online/api/v1.0.0/file/health"]
+    #   interval: 60s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 30s
+  # ENDREGION
+  # ===============================
+
+  # ===============================
+  # REGION: Databases Configuration
+  mysql:
+    container_name: mysql
+    image: mysql:8.0.38-debian
+    expose:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: identity_service
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - database
+    command: --default-authentication-plugin=mysql_native_password
+  
+  redis:
+    container_name: redis
+    image: redis:latest
+    expose:
+      - "6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - database
+
+  kafka:
+    container_name: kafka
+    image: bitnami/kafka:3.7.0
+    hostname: kafka
+    ports:
+      - "9094:9094"
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://kafka:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    volumes:
+      - kafka-data:/bitnami/kafka
+    networks:
+      - messaging
+
+  mongo:
+    container_name: mongo
+    image: bitnami/mongodb:7.0.11
+    expose:
+      - "27017"
+    environment:
+      MONGODB_ROOT_PASSWORD: root
+      MONGODB_DATABASE: profile_db
+    volumes:
+      - mongodb-data:/bitnami/mongodb
+    networks:
+      - database
+
+  neo4j:
+    container_name: neo4j
+    image: neo4j:latest
+    expose:
+      - "7474"
+      - "7687"
+    environment:
+      NEO4J_AUTH: neo4j/loveHA13
+    volumes:
+      - neo4j-data:/data
+    networks:
+      - database
+  # ENDREGION
+  # ===============================
