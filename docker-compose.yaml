@@ -78,7 +78,7 @@ services:
 
   identity-service:
     container_name: identity-service
-    image: richyotd/charity-identity:2.0
+    image: richyotd/charity-identity:2.1
     expose:
       - "8080"
     networks:
@@ -101,7 +101,7 @@ services:
 
   profile-service:
     container_name: profile-service
-    image: richyotd/charity-profile:1.6
+    image: richyotd/charity-profile:1.7
     expose:
       - "8081"
     networks:
@@ -124,7 +124,7 @@ services:
 
   notification-service:
     container_name: notification-service
-    image: richyotd/charity-notification:1.9
+    image: richyotd/charity-notification:2.0
     expose:
       - "8082"
     networks:
