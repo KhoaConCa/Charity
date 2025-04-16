@@ -77,7 +77,7 @@ services:
 
   identity-service:
     container_name: identity-service
-    image: richyotd/charity-identity:1.8
+    image: richyotd/charity-identity:1.9
     expose:
       - "8080"
     networks:

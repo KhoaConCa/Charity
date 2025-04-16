@@ -671,12 +671,12 @@ public class AuthenticationService {
 //            }
 //        }
 
-        if (!existingDevice.isOtpVerified()) {
-            otpRequired = true;
-        } else {
-            existingDevice.setLastUsedAt(LocalDateTime.now());
-            deviceRepository.save(existingDevice);
-        }
+//        if (!existingDevice.isOtpVerified()) {
+//            otpRequired = true;
+//        } else {
+//            existingDevice.setLastUsedAt(LocalDateTime.now());
+//            deviceRepository.save(existingDevice);
+//        }
 
         // 7. Nếu user bật 2FA thì luôn yêu cầu OTP
         if (user.isTwoFactorEnabled()) {
