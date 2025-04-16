@@ -636,39 +636,46 @@ public class AuthenticationService {
                     .authenticated(true)
                     .build();
         }
+        // note to open again **********
+//        if (existingDevice == null) {
+//            // 5.1 Gửi email cảnh báo
+////            emailService.sendNewDeviceAlert(user.getEmail(), deviceInfo);
+//            NotificationEvent notificationEvent = NotificationEvent.builder()
+//                    .chanel(CHANEL.EMAIL)
+//                    .recipient(user.getEmail())
+//                    .subject(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getTopic())
+//                    .body(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getDes())
+//                    .templateCode("email/new-device-alert")
+//                    .param(Map.of("device_info", deviceInfo))
+//                    .build();
+//            kafkaTemplate.send(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getTopic(), notificationEvent);
+//
+//            // 5.2 Lưu thiết bị với trạng thái "chưa xác thực OTP"
+//            Device newDevice = Device.builder()
+//                    .user(user)
+//                    .deviceInfo(deviceInfo)
+//                    .createdAt(LocalDateTime.now())
+//                    .lastUsedAt(LocalDateTime.now())
+//                    .otpVerified(false) // Mới, cần xác thực OTP
+//                    .build();
+//            deviceRepository.save(newDevice);
+//
+//            otpRequired = true;
+//        } else {
+//            // 6. Kiểm tra thiết bị đã xác thực OTP chưa
+//            if (!existingDevice.isOtpVerified()) {
+//                otpRequired = true;
+//            } else {
+//                existingDevice.setLastUsedAt(LocalDateTime.now());
+//                deviceRepository.save(existingDevice);
+//            }
+//        }
 
-        if (existingDevice == null) {
-            // 5.1 Gửi email cảnh báo
-//            emailService.sendNewDeviceAlert(user.getEmail(), deviceInfo);
-            NotificationEvent notificationEvent = NotificationEvent.builder()
-                    .chanel(CHANEL.EMAIL)
-                    .recipient(user.getEmail())
-                    .subject(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getTopic())
-                    .body(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getDes())
-                    .templateCode("email/new-device-alert")
-                    .param(Map.of("device_info", deviceInfo))
-                    .build();
-            kafkaTemplate.send(KafkaTopic.SUSPICIOUS_LOGIN_ATTEMPT.getTopic(), notificationEvent);
-
-            // 5.2 Lưu thiết bị với trạng thái "chưa xác thực OTP"
-            Device newDevice = Device.builder()
-                    .user(user)
-                    .deviceInfo(deviceInfo)
-                    .createdAt(LocalDateTime.now())
-                    .lastUsedAt(LocalDateTime.now())
-                    .otpVerified(false) // Mới, cần xác thực OTP
-                    .build();
-            deviceRepository.save(newDevice);
-
+        if (!existingDevice.isOtpVerified()) {
             otpRequired = true;
         } else {
-            // 6. Kiểm tra thiết bị đã xác thực OTP chưa
-            if (!existingDevice.isOtpVerified()) {
-                otpRequired = true;
-            } else {
-                existingDevice.setLastUsedAt(LocalDateTime.now());
-                deviceRepository.save(existingDevice);
-            }
+            existingDevice.setLastUsedAt(LocalDateTime.now());
+            deviceRepository.save(existingDevice);
         }
 
         // 7. Nếu user bật 2FA thì luôn yêu cầu OTP
