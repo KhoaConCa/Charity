@@ -20,5 +20,6 @@ public class ReactionResponse {
     String profileId;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
+    String action;
 }
 

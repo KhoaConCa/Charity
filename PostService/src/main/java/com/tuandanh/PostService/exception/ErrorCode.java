@@ -38,6 +38,9 @@ public enum ErrorCode {
     CANNOT_ADD_FRIEND_DUE_TO_BLOCK(1031, "Can't add friend due to block", HttpStatus.BAD_REQUEST),
     INVALID_TAGS(1032, "Not the friends of the own post", HttpStatus.BAD_REQUEST),
     POST_NOT_FOUND(1034, "Post not found", HttpStatus.BAD_REQUEST),
+    REACTION_ALREADY_EXISTS(1035, "Reaction already exists", HttpStatus.CONFLICT),
+    REACTION_NOT_FOUND(1036, "Reaction not found", HttpStatus.BAD_REQUEST),
+    COMMENT_NOT_FOUND(1037, "Comment not found", HttpStatus.BAD_REQUEST)
     ;
     private final int code;
     private final String message;
