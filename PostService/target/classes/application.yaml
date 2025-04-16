@@ -13,17 +13,17 @@ spring:
       max-request-size: ${MAX_REQUEST_SIZE:10MB}
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://root:root@localhost:27017/post-service?authSource=admin}
+      uri: ${MONGODB_URI:mongodb://root:root@mongo:27017/post-service?authSource=admin}
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 app:
   service:
-    file: ${FILE_SERVICE_URL:http://localhost:8084/file}
-    profile: ${PROFILE_SERVICE_URL:http://localhost:8081/file}
+    file: ${FILE_SERVICE_URL:http://file-service:8084/file}
+    profile: ${PROFILE_SERVICE_URL:http://profile-service:8081/file}
 
 jwt:
   signerKey: ${JWT_SIGNER_KEY:1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij}
@@ -36,5 +36,5 @@ openapi:
     name: ${OPENAPI_LICENSE_NAME:API License}
     url: ${OPENAPI_LICENSE_URL:https://www.facebook.com/nguyentuan.danh.167/}
   server:
-    url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
+    url: ${OPENAPI_SERVER_URL:http://identity-service:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
