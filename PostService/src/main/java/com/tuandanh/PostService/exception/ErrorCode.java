@@ -40,7 +40,9 @@ public enum ErrorCode {
     POST_NOT_FOUND(1034, "Post not found", HttpStatus.BAD_REQUEST),
     REACTION_ALREADY_EXISTS(1035, "Reaction already exists", HttpStatus.CONFLICT),
     REACTION_NOT_FOUND(1036, "Reaction not found", HttpStatus.BAD_REQUEST),
-    COMMENT_NOT_FOUND(1037, "Comment not found", HttpStatus.BAD_REQUEST)
+    COMMENT_NOT_FOUND(1037, "Comment not found", HttpStatus.BAD_REQUEST),
+    ID_NOT_FOUND(1038, "may be id post or id comment not found", HttpStatus.BAD_REQUEST),
+    EXCEED_SIZE_FILE(1039, "exceed size of file, please change another file", HttpStatus.BAD_REQUEST)
     ;
     private final int code;
     private final String message;

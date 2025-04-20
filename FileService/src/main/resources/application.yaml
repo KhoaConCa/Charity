@@ -15,6 +15,11 @@ jwt:
 spring:
   application:
     name: notification-service
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: ${MAX_FILE_SIZE:100MB}
+      max-request-size: ${MAX_REQUEST_SIZE:100MB}
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://root:root@localhost:27017/file-service?authSource=admin}

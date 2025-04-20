@@ -36,6 +36,7 @@ public enum ErrorCode {
     DONT_HAVE_PERMISSION_TO_ACCEPT(1029, "Don't have permission to accept", HttpStatus.BAD_REQUEST),
     CANNOT_FOLLOW_DUE_TO_BLOCK(1030, "Can't follow due to block", HttpStatus.BAD_REQUEST),
     CANNOT_ADD_FRIEND_DUE_TO_BLOCK(1031, "Can't add friend due to block", HttpStatus.BAD_REQUEST),
+    EXCEED_SIZE_FILE(1039, "exceed size of file, please change another file", HttpStatus.BAD_REQUEST)
     ;
     private final int code;
     private final String message;

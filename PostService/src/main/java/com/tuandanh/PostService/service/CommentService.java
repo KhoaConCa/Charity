@@ -12,6 +12,7 @@ import com.tuandanh.PostService.exception.AppException;
 import com.tuandanh.PostService.exception.ErrorCode;
 import com.tuandanh.PostService.mapper.CommentMapper;
 import com.tuandanh.PostService.repository.CommentRepository;
+import com.tuandanh.PostService.repository.ReactionRepository;
 import com.tuandanh.PostService.repository.httpClient.FileClient;
 import com.tuandanh.PostService.repository.httpClient.UserProfileClient;
 import lombok.AccessLevel;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -42,6 +44,7 @@ public class CommentService {
     UserProfileClient userProfileClient;
     CommentMapper commentMapper;
     FileClient fileClient;
+    ReactionRepository reactionRepository;
 
 
     public CommentResponse createComment(CommentCreationRequest commentCreationRequest
@@ -124,6 +127,9 @@ public class CommentService {
         for (Comment reply : replies) {
             // Xoá các reply lồng nhau
             deleteRepliesRecursively(reply.getId());
+
+            // Xoá reactions trước
+            reactionRepository.deleteAllByCommentId(reply.getId());
             // Xoá reply hiện tại
             commentRepository.deleteById(reply.getId());
         }
@@ -187,6 +193,30 @@ public class CommentService {
         );
 
         return commentMapper.toCommentResponse(comment);
+    }
+
+    public PageResponse<CommentResponse> getUserComments(String profileId, int page, int size){
+        Sort sort = Sort.by("createdAt").descending();
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        var pageData = commentRepository.findAllByProfileId(profileId, pageable);
+
+        return PageResponse.<CommentResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalElements(pageData.getTotalElements())
+                .data(pageData.getContent().stream().map(commentMapper::toCommentResponse).toList())
+                .build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteAllCommentsByPost(String postId){
+        commentRepository.deleteByPostId(postId);
+    }
+
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteAllCommentByProfileId(String profileId){
+        commentRepository.deleteByProfileId(profileId);
     }
 
 

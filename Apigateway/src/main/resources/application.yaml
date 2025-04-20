@@ -41,6 +41,12 @@ spring:
             - Path=${app.api-prefix}/file/**
           filters:
             - StripPrefix=2
+        - id: donation-service
+          uri: ${FILE_SERVICE_URI:http://localhost:8085}
+          predicates:
+            - Path=${app.api-prefix}/donation/**
+          filters:
+            - StripPrefix=2
 
 springdoc:
   swagger-ui:
@@ -53,6 +59,8 @@ springdoc:
         url: ${app.api-prefix}/file/v3/api-docs
       - name: Post Service
         url: ${app.api-prefix}/post/v3/api-docs
+      - name: Donation Service
+        url: ${app.api-prefix}/donation/v3/api-docs
 
 server:
   port: ${SERVER_PORT:8888}

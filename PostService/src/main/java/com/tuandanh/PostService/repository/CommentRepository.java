@@ -11,7 +11,11 @@ import java.util.List;
 public interface CommentRepository extends MongoRepository<Comment, String> {
     Page<Comment> findAllByPostId(String postId, Pageable pageable);
     List<Comment> findAllByParentId(String parenId);
-    Page<Comment> findAllByParentId(String parenId, Pageable pageable);
+    List<Comment> findByPostId(String postId);
+    Page<Comment> findAllByParentId(String parentId, Pageable pageable);
+    Page<Comment> findAllByProfileId(String profileId, Pageable pageable);
     long countByParentId(String parenId);
     long countByPostId(String postId);
+    void deleteByPostId(String postId);
+    void deleteByProfileId(String profileId);
 }

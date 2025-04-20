@@ -7,6 +7,7 @@ import com.tuandanh.PostService.dto.response.FriendshipResponse;
 import com.tuandanh.PostService.dto.response.PostResponse;
 import com.tuandanh.PostService.dto.request.PostCreationRequest;
 import com.tuandanh.PostService.dto.response.ProfileResponse;
+import com.tuandanh.PostService.entity.Comment;
 import com.tuandanh.PostService.entity.Post;
 import com.tuandanh.PostService.entity.Reaction;
 import com.tuandanh.PostService.enums.*;
@@ -46,6 +47,7 @@ public class PostService {
     ReactionRepository reactionRepository;
     CommentRepository commentRepository;
     PostMapper postMapper;
+    CommentService commentService;
     KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
     private static final String NOTIFY_TAGGED_USERS_TOPIC = "tag-notification-topic";
@@ -229,6 +231,19 @@ public class PostService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
+        // 4. Xóa reaction trên post
+        reactionRepository.deleteByPostId(postId);
+
+        // 5. Tìm tất cả comment liên quan đến post
+        List<Comment> comments = commentRepository.findByPostId(postId);
+
+        for (Comment comment : comments) {
+            // 5.1 Xóa reactions trên comment
+            reactionRepository.deleteAllByCommentId(comment.getId());
+            commentService.deleteComment(comment.getId());
+        }
+
+
         // 3. Nếu có file, xóa từng file khỏi S3 và xóa metadata khỏi DB
         if (post.getFileIds() != null && !post.getFileIds().isEmpty()) {
             // Lấy thông tin file từ DB
@@ -247,7 +262,7 @@ public class PostService {
         postRepository.delete(post);
     }
 
-        @PreAuthorize("hasRole('ADMIN')")
+//        @PreAuthorize("hasRole('ADMIN')")
     public PageResponse<PostResponse> getAllPosts(int page, int size){
             Sort sort = Sort.by("createdAt").descending();
             Pageable pageable = PageRequest.of(page - 1, size, sort);

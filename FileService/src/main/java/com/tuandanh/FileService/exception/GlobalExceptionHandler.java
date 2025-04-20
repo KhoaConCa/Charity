@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
@@ -14,6 +17,29 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+//    @ExceptionHandler(value = MaxUploadSizeExceededException.class)
+//    ResponseEntity<ApiResponse> handlingSizeUpload(MaxUploadSizeExceededException ex, WebRequest request) {
+//        ApiResponse apiResponse = new ApiResponse();
+//        ErrorCode errorCode = ErrorCode.EXCEED_SIZE_FILE;
+//
+//        apiResponse.setCode(errorCode.getCode());
+//        apiResponse.setMessage(errorCode.getMessage());
+//
+//        return ResponseEntity.status(errorCode.getCode()).body(apiResponse);
+//    }
+
+//    @ExceptionHandler(value = MultipartException.class)
+//    ResponseEntity<ApiResponse> handlingSizeUpload(MultipartException ex) {
+//        ApiResponse apiResponse = new ApiResponse();
+//        ErrorCode errorCode = ErrorCode.EXCEED_SIZE_FILE;
+//
+//        apiResponse.setCode(errorCode.getCode());
+//        apiResponse.setMessage(errorCode.getMessage());
+//
+//        return ResponseEntity.status(errorCode.getCode()).body(apiResponse);
+//    }
+
+
 
     @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<ApiResponse> handlingRuntimeException(RuntimeException exception){
