@@ -1,6 +1,6 @@
 # Ignore sensitive files
-notificationService/src/main/resources/firebase/firebase-service-account.json
-notificationService/.env
+# Ignore environment file
+.env
 
 HELP.md
 target/
