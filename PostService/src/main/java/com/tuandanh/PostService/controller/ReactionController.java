@@ -23,7 +23,7 @@ import java.util.Map;
 public class ReactionController {
     ReactionService reactionService;
 
-    @PostMapping
+    @PostMapping("/reactToPost")
     public ApiResponse<ReactionResponse> reactToPost(
             @RequestBody ReactionCreationRequest reactionCreationRequest,
             @Parameter(hidden = true) Authentication authentication) {
@@ -34,8 +34,19 @@ public class ReactionController {
                 .build();
     }
 
-    @GetMapping("/{postId}")
-    public ApiResponse<PageResponse<ReactionResponse>> getReactionsByPostId(
+    @PostMapping("/reactToComment")
+    public ApiResponse<ReactionResponse> reactToComment(
+            @RequestBody ReactionCreationRequest reactionCreationRequest,
+            @Parameter(hidden = true) Authentication authentication) {
+        ReactionResponse reactionResponse = reactionService.reactToComment(reactionCreationRequest, authentication);
+
+        return ApiResponse.<ReactionResponse>builder()
+                .result(reactionResponse)
+                .build();
+    }
+
+    @GetMapping("/inPost/{postId}")
+    public ApiResponse<PageResponse<ReactionResponse>> getReactionsByPost(
             @PathVariable String postId,
             @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
@@ -46,8 +57,20 @@ public class ReactionController {
                 .build();
     }
 
+    @GetMapping("/inComment/{commentId}")
+    public ApiResponse<PageResponse<ReactionResponse>> getReactionsByComment(
+            @PathVariable String commentId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size) {
+        PageResponse<ReactionResponse> reactionResponses = reactionService.getReactionsByComment(commentId, size, page);
+
+        return ApiResponse.<PageResponse<ReactionResponse>>builder()
+                .result(reactionResponses)
+                .build();
+    }
+
     @GetMapping("/counts/{postId}")
-    public ApiResponse<Long> countReactionsByPostId(@PathVariable String postId) {
+    public ApiResponse<Long> countReactionsByPost(@PathVariable String postId) {
         Long number = reactionService.getCountReactionsByPost(postId);
 
         return ApiResponse.<Long>builder()
@@ -55,18 +78,46 @@ public class ReactionController {
                 .build();
     }
 
-    @GetMapping("/summary/{postId}")
-    public ApiResponse<Map<ReactionType, Long>> getSummaryOfReaction(@PathVariable String postId) {
-        Map<ReactionType, Long> summary = reactionService.getReactionSummary(postId);
+    @GetMapping("/counts/{commentId}")
+    public ApiResponse<Long> countReactionsByComment(@PathVariable String commentId) {
+        Long number = reactionService.getCountReactionsByComment(commentId);
+
+        return ApiResponse.<Long>builder()
+                .result(number)
+                .build();
+    }
+
+    @GetMapping("/summary/inPost/{postId}")
+    public ApiResponse<Map<ReactionType, Long>> getSummaryOfReactionInPost(@PathVariable String postId) {
+        Map<ReactionType, Long> summary = reactionService.getReactionSummaryByPost(postId);
 
         return ApiResponse.<Map<ReactionType, Long>>builder()
                 .result(summary)
                 .build();
     }
 
-    @GetMapping("/user/{postId}/{profileId}")
+    @GetMapping("/summary/inComment/{commentId}")
+    public ApiResponse<Map<ReactionType, Long>> getSummaryOfReactionInComment(@PathVariable String commentId) {
+        Map<ReactionType, Long> summary = reactionService.getReactionSummaryByComment(commentId);
+
+        return ApiResponse.<Map<ReactionType, Long>>builder()
+                .result(summary)
+                .build();
+    }
+
+    @GetMapping("/user/inPost/{postId}/{profileId}")
     public ApiResponse<ReactionType> getUserReaction(@PathVariable String postId, @PathVariable String profileId) {
-        ReactionType reactionResponse = reactionService.getUserReaction(postId, profileId);
+        ReactionType reactionResponse = reactionService.getUserReactionForPost(postId, profileId);
+
+        return ApiResponse.<ReactionType>builder()
+                .result(reactionResponse)
+                .build();
+    }
+
+    @GetMapping("/user/inComment/{commentId}/{profileId}")
+    public ApiResponse<ReactionType> getUserReactionForComment(
+            @PathVariable String commentId, @PathVariable String profileId) {
+        ReactionType reactionResponse = reactionService.getUserReactionForComment(commentId, profileId);
 
         return ApiResponse.<ReactionType>builder()
                 .result(reactionResponse)
@@ -74,11 +125,20 @@ public class ReactionController {
     }
 
     @DeleteMapping("/{postId}")
-    public ApiResponse<String> removeReaction(@PathVariable String postId) {
+    public ApiResponse<String> removeReactionInPost(@PathVariable String postId) {
         reactionService.removeAllReactionsByPost(postId);
 
         return ApiResponse.<String>builder()
-                .result("remove reaction successfully")
+                .result("remove reaction in post successfully")
+                .build();
+    }
+
+    @DeleteMapping("/{commentId}")
+    public ApiResponse<String> removeReactionInComment(@PathVariable String commentId) {
+        reactionService.removeAllReactionsByComment(commentId);
+
+        return ApiResponse.<String>builder()
+                .result("remove reaction in comment successfully")
                 .build();
     }
 
@@ -87,7 +147,7 @@ public class ReactionController {
         reactionService.removeAllReactionsByProfile(profileId);
 
         return ApiResponse.<String>builder()
-                .result("remove reaction successfully")
+                .result("remove reaction of this profile successfully")
                 .build();
     }
 }

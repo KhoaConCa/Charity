@@ -1,4 +1,4 @@
-package com.tuandanh.PostService.exception;
+package com.tuandanh.DonationService.exception;
 
 import org.springframework.http.HttpStatus;
 

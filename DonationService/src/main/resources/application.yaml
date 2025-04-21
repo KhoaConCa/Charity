@@ -1,0 +1,36 @@
+server:
+  port: 8085
+  servlet:
+    context-path: /donation
+spring:
+  application:
+    name: ${SPRING_APPLICATION_NAME:DonationService}
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/donation_db}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        dialect: ${SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.PostgresSQLDialect}
+        format_sql: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:true}
+
+jwt:
+  signerKey: ${JWT_SIGNER_KEY:1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij}
+
+openapi:
+  title: ${OPENAPI_TITLE:Charity Social Media Document}
+  description: ${OPENAPI_DESCRIPTION:API documentation for Charity Social Media}
+  version: ${OPENAPI_VERSION:1.0.0}
+  license:
+    name: ${OPENAPI_LICENSE_NAME:API License}
+    url: ${OPENAPI_LICENSE_URL:https://www.facebook.com/nguyentuan.danh.167/}
+  server:
+    url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
+    description: ${OPENAPI_SERVER_DESCRIPTION:server test}

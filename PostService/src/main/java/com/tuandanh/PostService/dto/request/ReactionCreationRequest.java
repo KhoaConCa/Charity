@@ -11,5 +11,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ReactionCreationRequest {
     String postId;
+    String commentId;
     ReactionType reactionType;
 }
