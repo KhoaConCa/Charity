@@ -42,7 +42,7 @@ spring:
           filters:
             - StripPrefix=2
         - id: donation-service
-          uri: ${FILE_SERVICE_URI:http://localhost:8085}
+          uri: ${DONATION_SERVICE_URI:http://localhost:8085}
           predicates:
             - Path=${app.api-prefix}/donation/**
           filters:
