@@ -7,7 +7,7 @@ spring:
     name: ${SPRING_APPLICATION_NAME:DonationService}
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/donation_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/donation_db}
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:root}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
@@ -32,5 +32,5 @@ openapi:
     name: ${OPENAPI_LICENSE_NAME:API License}
     url: ${OPENAPI_LICENSE_URL:https://www.facebook.com/nguyentuan.danh.167/}
   server:
-    url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
+    url: ${OPENAPI_SERVER_URL:http://identity-service:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}

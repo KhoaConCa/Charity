@@ -10,7 +10,7 @@ public class DonationServiceApplication {
 	public static void main(String[] args) {
 		// Load .env file
 		Dotenv dotenv = Dotenv.configure()
-				.directory("donationService") // Chỉ định thư mục chứa .env
+				.directory("/app/donation") // Chỉ định thư mục chứa .env
 				.filename(".env") // Đảm bảo tên file đúng
 				.load();
 		dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));

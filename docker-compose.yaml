@@ -27,6 +27,8 @@ volumes:
     name: mysql-data
   mongodb-data:
     name: mongodb-data
+  postgresql-data:
+    name: postgresql-data
   redis-data:
     name: redis-data
   kafka-data:
@@ -62,7 +64,7 @@ services:
   # REGION: Backend Services Configuration
   gateway-service:
     container_name: gateway-service
-    image: richyotd/charity-gateway:1.8
+    image: richyotd/charity-gateway:1.9
     expose:
       - "8888"
     networks:
@@ -78,7 +80,7 @@ services:
 
   identity-service:
     container_name: identity-service
-    image: richyotd/charity-identity:2.2
+    image: richyotd/charity-identity:2.3
     expose:
       - "8080"
     networks:
@@ -101,7 +103,7 @@ services:
 
   profile-service:
     container_name: profile-service
-    image: richyotd/charity-profile:1.8
+    image: richyotd/charity-profile:1.9
     expose:
       - "8081"
     networks:
@@ -124,7 +126,7 @@ services:
 
   notification-service:
     container_name: notification-service
-    image: richyotd/charity-notification:2.0
+    image: richyotd/charity-notification:2.1
     expose:
       - "8082"
     networks:
@@ -141,7 +143,7 @@ services:
 
   post-service:
     container_name: post-service
-    image: richyotd/charity-post:1.6
+    image: richyotd/charity-post:1.7
     expose:
       - "8083"
     networks:
@@ -164,7 +166,7 @@ services:
 
   file-service:
     container_name: file-service
-    image: richyotd/charity-file:1.4
+    image: richyotd/charity-file:1.5
     expose:
       - "8084"
     networks:
@@ -173,6 +175,29 @@ services:
       - messaging
     depends_on:
       mongo:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "https://baodungkhoaphu.online/api/v1.0.0/file/health"]
+    #   interval: 60s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 30s
+
+  donation-service:
+    container_name: donation-service
+    image: richyotd/charity-donation:1.0
+    expose:
+      - "8085"
+    networks:
+      - backend
+      - database
+      - messaging
+    depends_on:
+      postgresql:
         condition: service_started
       redis:
         condition: service_started
@@ -255,6 +280,20 @@ services:
       NEO4J_AUTH: neo4j/loveHA13
     volumes:
       - neo4j-data:/data
+    networks:
+      - database
+  
+  postgresql:
+    container_name: postgresql
+    image: postgres:latest
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: donation_db
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
     networks:
       - database
   # ENDREGION
