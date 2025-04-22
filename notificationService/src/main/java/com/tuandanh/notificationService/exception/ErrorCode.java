@@ -10,6 +10,7 @@ public enum ErrorCode {
     UNAUTHORIZED(1015, "Unauthorized", HttpStatus.FORBIDDEN),
     CANNOT_SEND_EMAIL(1016, "Can't send email", HttpStatus.INTERNAL_SERVER_ERROR),
     PROFILE_EXISTED(1017, "Profile already exists", HttpStatus.CONFLICT),
+    NOTIFICATION_NOT_FOUND(1018, "Notification not found", HttpStatus.NOT_FOUND),
     ;
     private final int code;
     private final String message;

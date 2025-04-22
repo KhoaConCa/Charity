@@ -127,7 +127,7 @@ services:
 
   notification-service:
     container_name: notification-service
-    image: richyotd/charity-notification:2.2
+    image: richyotd/charity-notification:2.3
     expose:
       - "8082"
     networks:
@@ -190,7 +190,7 @@ services:
 
   donation-service:
     container_name: donation-service
-    image: richyotd/charity-donation:1.5
+    image: richyotd/charity-donation:1.6
     expose:
       - "8085"
     networks:

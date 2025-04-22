@@ -8,9 +8,12 @@ import com.tuandanh.notificationService.entity.FcmToken;
 import com.tuandanh.notificationService.entity.NotificationLog;
 import com.tuandanh.notificationService.enums.NotificationType;
 import com.tuandanh.notificationService.enums.Status;
+import com.tuandanh.notificationService.exception.AppException;
+import com.tuandanh.notificationService.exception.ErrorCode;
 import com.tuandanh.notificationService.repository.FakeNotificationLogRepository;
 import com.tuandanh.notificationService.repository.FcmTokenRepository;
 import com.tuandanh.notificationService.repository.NotificationLogRepository;
+import com.tuandanh.notificationService.repository.httpClient.UserProfileClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -32,7 +35,37 @@ public class PushNotificationService {
     FcmTokenRepository fcmTokenRepository;
     NotificationLogRepository notificationLogRepository;
     FakeNotificationLogRepository fakeNotificationLogRepository;
+    UserProfileClient userProfileClient;
     private static final String TOPIC = "topic";
+
+    public List<FakeNotificationLog> getUnreadNotificationLogs(String userId) {
+        return fakeNotificationLogRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
+    }
+
+    public FakeNotificationLog markAsRead(String id) {
+        var notification = fakeNotificationLogRepository.findById(id)
+                .orElseThrow(
+                        () -> new AppException(ErrorCode.NOTIFICATION_NOT_FOUND)
+                );
+
+        notification.setRead(true);
+        notification.setReadAt(LocalDateTime.now());
+
+        return fakeNotificationLogRepository.save(notification);
+    }
+
+    public List<FakeNotificationLog> markAllAsRead(String userId){
+        var list = getUnreadNotificationLogs(userId);
+
+        list.forEach(
+                notification -> {
+                    notification.setRead(true);
+                    notification.setReadAt(LocalDateTime.now());
+                }
+        );
+
+        return fakeNotificationLogRepository.saveAll(list);
+    }
 
     public List<FakeNotificationLog> getListNotificationByUsers(String userId){
         return fakeNotificationLogRepository.findByUserId(userId);
@@ -41,10 +74,16 @@ public class PushNotificationService {
     public void mockNotification(NotificationEvent notificationEvent){
         Map<String, Object> param = notificationEvent.getParam();
 
+        var senderProfile = userProfileClient.getProfile(param.get("senderId").toString()).getResult();
+
         FakeNotificationLog fakeNotificationLog = FakeNotificationLog.builder()
                 .senderId(param.get("senderId").toString())
                 .userId(param.get("userId").toString())  // bạn đã để userId là người nhận rồi
+                .avatarUrlOfSender(senderProfile.getAvatarUrl())
+                .firstNameOfSender(senderProfile.getFirstName())
+                .lastNameOfSender(senderProfile.getLastName())
                 .content(notificationEvent.getBody())
+                .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();
 

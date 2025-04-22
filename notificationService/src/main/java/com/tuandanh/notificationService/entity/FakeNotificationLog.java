@@ -22,6 +22,11 @@ public class FakeNotificationLog {
     String id;
     String userId;   // ID người dùng nhận thông báo
     String senderId;
+    String avatarUrlOfSender;
+    String firstNameOfSender;
+    String lastNameOfSender;
     LocalDateTime createdAt;// Thời gian gửi thông báo
     String content;
+    boolean isRead;
+    LocalDateTime readAt;
 }
