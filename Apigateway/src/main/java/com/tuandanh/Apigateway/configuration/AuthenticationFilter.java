@@ -59,6 +59,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/auth/forgot-password-otp",
             "/auth/reset-password-otp",
             "/auth/verify-otp-password",
+            "/momo/ipn",
 
             // Swagger URLs
             "/swagger-ui.html",

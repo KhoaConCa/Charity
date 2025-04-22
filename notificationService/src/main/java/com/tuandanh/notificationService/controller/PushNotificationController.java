@@ -20,6 +20,16 @@ public class PushNotificationController {
     private static final String NEW_FOLLOW_REQUEST = "user-new-follow";
     private static final String NEW_FRIEND_REQUEST = "user-new-friend";
     private static final String NEW_TAGS_REQUEST = "tag-notification-topic";
+    private static final String NEW_DONATION_REQUEST = "new-donation";
+
+    @KafkaListener(topics = NEW_DONATION_REQUEST)
+    public ApiResponse<String> mockSendNotification(@RequestBody NotificationEvent notificationEvent) {
+        pushNotificationService.mockNotification(notificationEvent);
+
+        return ApiResponse.<String>builder()
+                .result("send notification successfully")
+                .build();
+    }
 
     @KafkaListener(topics = NEW_FOLLOW_REQUEST)
     public ApiResponse<String> sendNewFollowNotification(@RequestBody NotificationEvent notificationEvent) {

@@ -3,10 +3,12 @@ package com.tuandanh.notificationService.service;
 import com.google.firebase.messaging.*;
 import com.tuandanh.event.dto.NotificationEvent;
 import com.tuandanh.notificationService.dto.NotificationGroup;
+import com.tuandanh.notificationService.entity.FakeNotificationLog;
 import com.tuandanh.notificationService.entity.FcmToken;
 import com.tuandanh.notificationService.entity.NotificationLog;
 import com.tuandanh.notificationService.enums.NotificationType;
 import com.tuandanh.notificationService.enums.Status;
+import com.tuandanh.notificationService.repository.FakeNotificationLogRepository;
 import com.tuandanh.notificationService.repository.FcmTokenRepository;
 import com.tuandanh.notificationService.repository.NotificationLogRepository;
 import lombok.AccessLevel;
@@ -29,7 +31,25 @@ public class PushNotificationService {
 
     FcmTokenRepository fcmTokenRepository;
     NotificationLogRepository notificationLogRepository;
+    FakeNotificationLogRepository fakeNotificationLogRepository;
     private static final String TOPIC = "topic";
+
+    public List<FakeNotificationLog> getListNotificationByUsers(String userId){
+        return fakeNotificationLogRepository.findByUserId(userId);
+    }
+
+    public void mockNotification(NotificationEvent notificationEvent){
+        Map<String, Object> param = notificationEvent.getParam();
+
+        FakeNotificationLog fakeNotificationLog = FakeNotificationLog.builder()
+                .senderId(param.get("senderId").toString())
+                .userId(param.get("userId").toString())  // bạn đã để userId là người nhận rồi
+                .content(notificationEvent.getBody())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        fakeNotificationLogRepository.save(fakeNotificationLog);
+    }
 
     // Gửi thông báo cho một user từ NotificationEvent
     public void sendNotificationToUser(NotificationEvent notificationEvent, boolean isHighPriority) {

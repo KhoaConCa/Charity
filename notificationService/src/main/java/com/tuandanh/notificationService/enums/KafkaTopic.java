@@ -23,6 +23,7 @@ public enum KafkaTopic {
     SUSPICIOUS_LOGIN_ATTEMPT("suspicious login attempt", "record suspicious login attempt", KafkaGroupTopic.SECURITY_AND_FRAUD_DETECTION),
     ACCOUNT_BANNED("user account banned", "record account banned", KafkaGroupTopic.SECURITY_AND_FRAUD_DETECTION),
     FRAUD_DETECTION_ALERT("fraud detection alert", "record fraud detection alert ", KafkaGroupTopic.SECURITY_AND_FRAUD_DETECTION),
+    NEW_DONATION("new-donation", "new notification about donation", KafkaGroupTopic.NOTIFICATION_AND_ALERT_EVENTS)
     ;
 
     public String getTopic() {

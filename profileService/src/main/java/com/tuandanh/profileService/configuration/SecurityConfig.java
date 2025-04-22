@@ -37,9 +37,10 @@ public class SecurityConfig {
     private String signerKey;
 
     private final String[] PUBLIC_ENDPOINTS1 = {
-        "/internal/userProfiles",
-            "/health"
+        "/internal/userProfiles/**",
+            "/health",
     };
+
 
     private final String[] PUBLIC_ENDPOINTS2 = {
             "/error",
@@ -63,7 +64,7 @@ public class SecurityConfig {
 
         httpSecurity.authorizeHttpRequests(request -> request
                 .requestMatchers(PUBLIC_ENDPOINTS2).permitAll()
-                .requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINTS1).permitAll()
+                .requestMatchers(PUBLIC_ENDPOINTS1).permitAll()
                 .requestMatchers("/ws/**").permitAll() // Các endpoint public
                 .requestMatchers("/roles/**").hasRole("ADMIN")  // Chỉ admin mới có thể truy cập /roles/**
                 .requestMatchers("/permissions/**").hasRole("ADMIN")

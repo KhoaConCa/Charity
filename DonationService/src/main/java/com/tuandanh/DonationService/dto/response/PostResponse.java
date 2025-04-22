@@ -1,23 +1,20 @@
-package com.tuandanh.PostService.entity;
+package com.tuandanh.DonationService.dto.response;
 
-import com.tuandanh.PostService.enums.Privacy;
+
+import com.tuandanh.DonationService.enums.Privacy;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.MongoId;
 import org.springframework.data.geo.Point;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Document(collection = "posts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Post {
-    @MongoId
+public class PostResponse {
     String id;
     String profileId;
     String content;
