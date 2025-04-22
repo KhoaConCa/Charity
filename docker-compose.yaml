@@ -190,7 +190,7 @@ services:
 
   donation-service:
     container_name: donation-service
-    image: richyotd/charity-donation:1.4
+    image: richyotd/charity-donation:1.5
     expose:
       - "8085"
     networks:
