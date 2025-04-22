@@ -1,6 +1,7 @@
 package com.tuandanh.DonationService.service;
 
 import com.tuandanh.DonationService.dto.PageResponse;
+import com.tuandanh.DonationService.dto.PostDonationTotal;
 import com.tuandanh.DonationService.dto.request.DonationCreationRequest;
 import com.tuandanh.DonationService.dto.response.DonationResponse;
 import com.tuandanh.DonationService.entity.Donation;
@@ -20,7 +21,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,14 @@ public class DonationService {
     DonationMapper donationMapper;
     MomoPaymentService momoPaymentService;
     PaymentLogRepository paymentLogRepository;
+
+    public BigDecimal getTotalByPostId(String postId) {
+        return donationRepository.getTotalByPostId(postId);
+    }
+
+    public List<PostDonationTotal> getAllPostDonationTotals() {
+        return donationRepository.getTotalDonationByPost();
+    }
 
     public DonationResponse createDonation(DonationCreationRequest donationCreationRequest){
         Donation donation = donationMapper.toDonation(donationCreationRequest);

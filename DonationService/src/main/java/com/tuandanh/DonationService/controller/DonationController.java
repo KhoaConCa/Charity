@@ -2,6 +2,7 @@ package com.tuandanh.DonationService.controller;
 
 import com.tuandanh.DonationService.dto.ApiResponse;
 import com.tuandanh.DonationService.dto.PageResponse;
+import com.tuandanh.DonationService.dto.PostDonationTotal;
 import com.tuandanh.DonationService.dto.request.DonationCreationRequest;
 import com.tuandanh.DonationService.dto.response.DonationResponse;
 import com.tuandanh.DonationService.service.DonationService;
@@ -11,12 +12,33 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 @RestController
 @RequestMapping("/userDonation")
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DonationController {
     DonationService service;
+
+    @GetMapping("/total/{postId}")
+    public ApiResponse<BigDecimal> getTotalByPostId(@PathVariable String postId) {
+        var total = service.getTotalByPostId(postId);
+
+        return ApiResponse.<BigDecimal>builder()
+                .result(total)
+                .build();
+    }
+
+    @GetMapping("/total")
+    public ApiResponse<List<PostDonationTotal>> getTotalForAllPosts() {
+        var list =  service.getAllPostDonationTotals();
+
+        return ApiResponse.<List<PostDonationTotal>>builder()
+                .result(list)
+                .build();
+    }
 
     @PostMapping
     public ApiResponse<DonationResponse> createDonation(@RequestBody @Valid DonationCreationRequest donationCreationRequest){
