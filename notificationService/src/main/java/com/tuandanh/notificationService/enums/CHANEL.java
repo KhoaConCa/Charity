@@ -1,5 +1,5 @@
 package com.tuandanh.notificationService.enums;
 
 public enum CHANEL {
-    EMAIL,SMS;
+    EMAIL,SMS,PUSH_NOTIFICATION;
 }

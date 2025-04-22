@@ -25,6 +25,8 @@ public class Post {
     List<String> tags;
     Privacy privacy;
     Point point;
+    LocalDateTime donationStartTime;
+    LocalDateTime donationEndTime;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
 }

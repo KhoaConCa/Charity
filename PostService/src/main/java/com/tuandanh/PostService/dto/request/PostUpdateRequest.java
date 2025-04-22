@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.geo.Point;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -18,4 +19,6 @@ public class PostUpdateRequest {
     List<String> tags;
     Privacy privacy;
     Point point;
+    LocalDateTime donationStartTime;
+    LocalDateTime donationEndTime;
 }

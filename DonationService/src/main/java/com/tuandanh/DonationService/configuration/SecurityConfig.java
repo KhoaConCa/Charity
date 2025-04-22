@@ -35,7 +35,7 @@ public class SecurityConfig {
     private String signerKey;
 
     private final String[] PUBLIC_ENDPOINTS1 = {
-        "/internal/userProfiles"
+        "/momo/ipn"
     };
 
     private final String[] PUBLIC_ENDPOINTS2 = {

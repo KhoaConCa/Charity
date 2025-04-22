@@ -35,6 +35,8 @@ public class PostMapperImpl implements PostMapper {
         }
         postResponse.privacy( post.getPrivacy() );
         postResponse.point( post.getPoint() );
+        postResponse.donationStartTime( post.getDonationStartTime() );
+        postResponse.donationEndTime( post.getDonationEndTime() );
         postResponse.createdAt( post.getCreatedAt() );
         postResponse.updatedAt( post.getUpdatedAt() );
 

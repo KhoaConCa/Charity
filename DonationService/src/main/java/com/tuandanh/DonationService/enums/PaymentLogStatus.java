@@ -1,2 +1,5 @@
-package com.tuandanh.DonationService.enums;public enum PaymentLogStatus {
+package com.tuandanh.DonationService.enums;
+
+public enum PaymentLogStatus {
+    RECEIVED,PROCESSED,ERROR
 }

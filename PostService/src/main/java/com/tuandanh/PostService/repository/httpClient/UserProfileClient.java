@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
-@FeignClient(name = "profile-service", url = "${app.service.profile}",
+@FeignClient(name = "profile-service", contextId = "profileServiceClientForPost", url = "${app.service.profile}",
         configuration = {FeignConfig.class, AuthenticationRequestInterceptor.class})
 public interface UserProfileClient {
     @GetMapping(value = "/friends", consumes = MediaType.APPLICATION_JSON_VALUE)
     ApiResponse<List<FriendshipResponse>> getFriends(
             @RequestHeader("Authorization") String authorization);
 
-    @GetMapping(value = "/{profileId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/userProfiles/{profileId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     ApiResponse<ProfileResponse> getProfile(@PathVariable String profileId);
 
     @GetMapping("/userProfiles/get-active-profile/{userId}")

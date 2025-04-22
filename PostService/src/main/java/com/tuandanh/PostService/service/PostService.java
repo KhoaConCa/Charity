@@ -73,6 +73,8 @@ public class PostService {
                 .point(postCreationRequest.getPoint())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .donationStartTime(postCreationRequest.getDonationStartTime())
+                .donationEndTime(postCreationRequest.getDonationEndTime())
                 .build();
 
         // 2. Nếu có file, upload và gán vào fileIds
@@ -179,6 +181,8 @@ public class PostService {
         post.setTags(postUpdateRequest.getTags());
         post.setPoint(postUpdateRequest.getPoint());
         post.setUpdatedAt(LocalDateTime.now());
+        post.setDonationStartTime(postUpdateRequest.getDonationStartTime());
+        post.setDonationEndTime(postUpdateRequest.getDonationEndTime());
 
         // 6. Xóa file cũ nếu có chỉ định
         if (filesToRemove != null && !filesToRemove.isEmpty()) {

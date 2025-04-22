@@ -5,11 +5,16 @@ server:
 spring:
   application:
     name: ${SPRING_APPLICATION_NAME:DonationService}
+  kafka:
+    bootstrap-servers: localhost:9094
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/donation_db}
     username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root }
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
   jpa:
@@ -34,3 +39,17 @@ openapi:
   server:
     url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
+momo:
+  partner-code: MOMO
+  access-key: F8BBA842ECF85
+  secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+  redirect-url: http://localhost:3000/payment-success
+  ipn-url:  https://5b70-2405-4802-bbb8-9010-2533-cf7b-6ac0-60f0.ngrok-free.app/api/v1.0.0/donation/momo/ipn
+  endpoint: https://test-payment.momo.vn/v2/gateway/api/create
+
+app:
+  service:
+    post: ${APP_SERVICE_POST:http://localhost:8083/post}
+    profile: ${APP_SERVICE_PROFILE:http://localhost:8081/profile}
+
+

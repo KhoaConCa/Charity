@@ -11,10 +11,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/internal/userProfiles")
@@ -30,6 +27,13 @@ public class InternalUserProfileController {
             @RequestBody @Valid ProfileCreationRequest profileCreationRequest) {
 
         ProfileResponse profileResponse = userProfileService.createProfileJson(profileCreationRequest);
+        return ApiResponse.<ProfileResponse>builder().result(profileResponse).build();
+    }
+
+    @Operation(summary = "Lấy thông tin hồ sơ", description = "API lấy thông tin chi tiết của một hồ sơ")
+    @GetMapping("/{profileId}")
+    public ApiResponse<ProfileResponse> getProfile(@PathVariable String profileId){
+        ProfileResponse profileResponse = userProfileService.getProfileByProfileId(profileId);
         return ApiResponse.<ProfileResponse>builder().result(profileResponse).build();
     }
 }

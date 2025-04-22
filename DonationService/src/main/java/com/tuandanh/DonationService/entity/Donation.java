@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Setter
@@ -23,7 +24,7 @@ public class Donation {
     @Column(name = "post_id", nullable = false)
     String postId;
     @Column(name = "donor_id", nullable = false)
-    Long donorId;
+    String donorId;
     @Column(nullable = false, precision = 12, scale = 2)
     BigDecimal amount;
 
@@ -41,12 +42,15 @@ public class Donation {
     String paymentMethod;
 
     @Column(name = "payment_ref_id", length = 100)
-    String paymentRefId;
+    Long paymentRefId;
 
     @Column(name = "created_at", nullable = false)
     LocalDateTime createdAt;
 
     @Column(name = "paid_at")
     LocalDateTime paidAt;
+
+    @OneToMany(mappedBy = "donation", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<PaymentLog> paymentLogs; // Danh sách các payment log liên kết với donation
 
 }
