@@ -44,7 +44,7 @@ momo:
   access-key: F8BBA842ECF85
   secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
   redirect-url: http://localhost:3000/payment-success
-  ipn-url:  https://5b70-2405-4802-bbb8-9010-2533-cf7b-6ac0-60f0.ngrok-free.app/api/v1.0.0/donation/momo/ipn
+  ipn-url:   https://8722-2405-4802-bbb8-9010-2533-cf7b-6ac0-60f0.ngrok-free.app/api/v1.0.0/donation/momo/ipn
   endpoint: https://test-payment.momo.vn/v2/gateway/api/create
 
 app:
