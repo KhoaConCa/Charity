@@ -77,7 +77,7 @@ public class DonationController {
             @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             @RequestParam(value = "size", required = false, defaultValue = "10") int size
     ){
-        PageResponse<DonationResponse> response = service.getAllDonationOfUser(postId, page, size);
+        PageResponse<DonationResponse> response = service.getAllDonationOfPost(postId, page, size);
 
         return ApiResponse.<PageResponse<DonationResponse>>builder()
                 .result(response)
