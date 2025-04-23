@@ -64,7 +64,7 @@ services:
   # REGION: Backend Services Configuration
   gateway-service:
     container_name: gateway-service
-    image: richyotd/charity-gateway:2.1
+    image: richyotd/charity-gateway:2.2
     expose:
       - "8888"
     networks:
@@ -190,7 +190,7 @@ services:
 
   donation-service:
     container_name: donation-service
-    image: richyotd/charity-donation:1.8
+    image: richyotd/charity-donation:1.9
     expose:
       - "8085"
     networks:
