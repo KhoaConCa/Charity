@@ -1,13 +1,14 @@
 package com.tuandanh.FileService.service.aws3;
 
+import com.tuandanh.FileService.dto.request.BatchUploadUrlRequest;
 import com.tuandanh.FileService.dto.request.FileTypeRequest;
 import com.tuandanh.FileService.dto.response.FileResponse;
+import com.tuandanh.FileService.dto.response.PresignedUploadResponse;
 import com.tuandanh.FileService.entity.File;
 import com.tuandanh.FileService.enums.FileType;
 import com.tuandanh.FileService.mapper.FileMapper;
 import com.tuandanh.FileService.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -16,8 +17,12 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +32,12 @@ import java.util.UUID;
 public class FileService {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final String bucketName;
     private final FileRepository fileRepository;
     private final FileMapper fileMapper;
+    @Value("${cdn.domain}")
+    private String cdnDomain;
 
     public FileService(@Value("${aws3.access_key}") String accessKey,
                        @Value("${aws3.secret_key}") String secretKey,
@@ -42,10 +50,98 @@ public class FileService {
         this.fileMapper = fileMapper;
 
         AwsBasicCredentials awsCreds = AwsBasicCredentials.create(accessKey, secretKey);
+        StaticCredentialsProvider credsProvider = StaticCredentialsProvider.create(awsCreds);
         this.s3Client = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
                 .build();
+
+        this.s3Presigner = S3Presigner.builder()
+                .region(Region.of(region))
+                .credentialsProvider(credsProvider)
+                .build();
+    }
+
+    public List<PresignedUploadResponse> generateBatchUploadUrls(BatchUploadUrlRequest request) {
+        List<PresignedUploadResponse> result = new ArrayList<>();
+
+        for (String originalFileName : request.getFileName()) {
+            String fileName = UUID.randomUUID() + "_" + originalFileName;
+            String objectKey = fileName;
+
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .contentType("image/jpeg") // Hoặc param nếu cần
+                    .build();
+
+
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .putObjectRequest(putObjectRequest)
+                    .signatureDuration(Duration.ofMinutes(10))
+                    .build();
+
+            PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+
+            result.add(PresignedUploadResponse.builder()
+                    .fileName(fileName)
+                    .uploadUrl(presignedRequest.url().toString())
+                    .finalUrl("https://" + bucketName + ".s3.amazonaws.com/" + fileName)
+                    .build()
+            );
+        }
+
+        return result;
+    }
+
+
+
+    public String generatePresignedUploadUrl(String fileName, String contentType) {
+        PutObjectRequest objectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(fileName)
+                .contentType(contentType)
+                .build();
+
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(10))  // Thời gian URL có hiệu lực
+                .putObjectRequest(objectRequest)
+                .build();
+
+        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+        return presignedRequest.url().toString();
+    }
+
+    public String uploadFileVersion1(MultipartFile file, String profileId, FileType fileType) throws IOException {
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        String fileUrl = "https://" + cdnDomain + "/" + fileName;
+
+        // Upload file lên S3
+        s3Client.putObject(
+                PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(fileName)
+                        .contentType(file.getContentType())
+                        .build(),
+                RequestBody.fromBytes(file.getBytes())
+        );
+
+
+
+        // Lưu metadata vào database
+        File avatar = File.builder()
+                .profileId(profileId)
+                .fileName(fileName)
+                .fileUrl(fileUrl)
+                .fileType(fileType)
+                .createdAt(Instant.now().toString())
+                .updatedAt(Instant.now().toString())
+                .build();
+
+
+        fileRepository.save(avatar);
+
+        return avatar.getFileUrl();
     }
 
 

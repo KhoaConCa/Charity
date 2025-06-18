@@ -19,6 +19,7 @@ import com.tuandanh.PostService.repository.PostRepository;
 import com.tuandanh.PostService.repository.ReactionRepository;
 import com.tuandanh.PostService.repository.httpClient.FileClient;
 import com.tuandanh.PostService.repository.httpClient.UserProfileClient;
+import com.tuandanh.event.dto.FileMetadataConfirmRequest;
 import com.tuandanh.event.dto.NotificationEvent;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -49,6 +51,7 @@ public class PostService {
     PostMapper postMapper;
     CommentService commentService;
     KafkaTemplate<String, NotificationEvent> kafkaTemplate;
+    KafkaTemplate<String, FileMetadataConfirmRequest> kafkaTemplate1;
 
     private static final String NOTIFY_TAGGED_USERS_TOPIC = "tag-notification-topic";
     private final FileClient fileClient;
@@ -213,6 +216,117 @@ public class PostService {
         // 10. Trả về response
         return postMapper.toPostResponse(savedPost);
     }
+
+    @Transactional
+    public PostResponse createPostVersion1(PostCreationRequest request, List<String> fileUrls, String authorization) {
+        // 1. Validate tags (nếu cần)
+        // if (isTags(request.getTags(), authorization)) throw new AppException(...);
+
+        // 2. Tạo entity Post (chưa lưu)
+        Post post = Post.builder()
+                .profileId(request.getProfileId())
+                .content(request.getContent())
+                .fileIds(fileUrls != null ? new ArrayList<>(fileUrls) : new ArrayList<>())
+                .tags(request.getTags())
+                .privacy(request.getPrivacy())
+                .point(request.getPoint())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .donationStartTime(request.getDonationStartTime())
+                .donationEndTime(request.getDonationEndTime())
+                .build();
+
+        // 3. Lưu post
+        Post savedPost = postRepository.save(post);
+
+        // 4. Nếu public → tạo mặc định 1 reaction
+        if (request.getPrivacy() == Privacy.PUBLIC) {
+            reactionRepository.save(
+                    Reaction.builder()
+                            .postId(savedPost.getId())
+                            .reactionType(ReactionType.LIKE)
+                            .profileId(request.getProfileId())
+                            .build()
+            );
+        }
+
+        // 5. Gửi metadata file nếu có
+        if (fileUrls != null && !fileUrls.isEmpty()) {
+            for (String fileUrl : fileUrls) {
+                FileMetadataConfirmRequest event = new FileMetadataConfirmRequest(
+                        extractFileName(fileUrl),
+                        fileUrl,
+                        FileType.POST_MEDIA,
+                        savedPost.getId(),
+                        null,
+                        "image/jpeg",
+                        LocalDateTime.now()
+                );
+                kafkaTemplate1.send("media.file.metadata", event);
+            }
+        }
+
+        // 6. Trả kết quả
+        return postMapper.toPostResponse(savedPost);
+    }
+
+    @Transactional
+    public PostResponse updatePostVersion1(String postId, PostUpdateRequest request,
+                                   List<String> fileUrlsToAdd,
+                                   List<String> fileUrlsToRemove,
+                                   String authorization) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+
+        // Kiểm tra quyền
+        if (!post.getProfileId().equals(request.getProfileId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Xử lý tags mới (nếu cần gửi thông báo → sendTagNotification(post, newTags))
+        post.setContent(request.getContent());
+        post.setPrivacy(request.getPrivacy());
+        post.setTags(request.getTags());
+        post.setPoint(request.getPoint());
+        post.setUpdatedAt(LocalDateTime.now());
+        post.setDonationStartTime(request.getDonationStartTime());
+        post.setDonationEndTime(request.getDonationEndTime());
+
+        // Xóa file cũ
+        if (fileUrlsToRemove != null && !fileUrlsToRemove.isEmpty()) {
+            post.getFileIds().removeAll(fileUrlsToRemove);
+            fileClient.deleteFiles(fileUrlsToRemove); // Gọi file service
+        }
+
+        // Thêm file mới
+        if (fileUrlsToAdd != null && !fileUrlsToAdd.isEmpty()) {
+            post.getFileIds().addAll(fileUrlsToAdd);
+
+            for (String fileUrl : fileUrlsToAdd) {
+                FileMetadataConfirmRequest event = new FileMetadataConfirmRequest(
+                        extractFileName(fileUrl),
+                        fileUrl,
+                        FileType.POST_MEDIA,
+                        postId,
+                        null,
+                        "image/jpeg",
+                        LocalDateTime.now()
+                );
+                kafkaTemplate1.send("media.file.metadata", event);
+            }
+        }
+
+        Post updated = postRepository.save(post);
+        return postMapper.toPostResponse(updated);
+    }
+
+    private String extractFileName(String url) {
+        return url.substring(url.lastIndexOf("/") + 1);
+    }
+
+
+
 
 
     public void deletePost(String postId, Authentication authentication) {

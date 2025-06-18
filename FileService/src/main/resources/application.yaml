@@ -44,3 +44,6 @@ openapi:
     url: ${OPENAPI_SERVER_URL:http://localhost:8080/identity}
     description: ${OPENAPI_SERVER_DESCRIPTION:server test}
 
+cdn:
+  domain: d2oacvcc0a5qc4.cloudfront.net
+

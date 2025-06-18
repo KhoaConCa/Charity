@@ -2,10 +2,14 @@ package com.tuandanh.identityService.service;
 
 import com.tuandanh.event.dto.NotificationEvent;
 import com.tuandanh.identityService.constant.PredefinedRole;
+import com.tuandanh.identityService.dto.ProfileDto;
+import com.tuandanh.identityService.dto.UserDTO;
+import com.tuandanh.identityService.dto.UserWithProfileResponse;
 import com.tuandanh.identityService.dto.request.ChangePasswordRequest;
 import com.tuandanh.identityService.dto.request.UserCreationRequest;
 import com.tuandanh.identityService.dto.request.UserUpdateRequest;
 import com.tuandanh.identityService.dto.response.ChangePasswordResponse;
+import com.tuandanh.identityService.dto.response.ProfileResponse;
 import com.tuandanh.identityService.dto.response.UserOnlineStatusResponse;
 import com.tuandanh.identityService.dto.response.UserResponse;
 import com.tuandanh.identityService.entity.Role;
@@ -37,9 +41,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +57,28 @@ public class UserService {
     ProfileClient profileClient;
     ProfleMapper profleMapper;
     KafkaTemplate<String, NotificationEvent> kafkaTemplate;
+
+    public List<UserWithProfileResponse> getUsersWithProfiles() {
+        List<User> users = userRepository.findAll(); // giả sử lấy 20 users
+        List<String> userIds = users.stream().map(User::getId).toList();
+
+        // Call batch API từ ProfileService
+        List<ProfileResponse> profileDtos = profileClient.getProfilesByUserIds(userIds);
+
+        // Tạo map userId -> list<ProfileDto>
+        Map<String, List<ProfileResponse>> profileMap = profileDtos.stream()
+                .collect(Collectors.groupingBy(ProfileResponse::getUserId)); // yêu cầu ProfileDto có getUserId()
+
+        // Gộp dữ liệu
+        return users.stream().map(user -> new UserWithProfileResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                profileMap.getOrDefault(user.getId(), List.of())
+        )).toList();
+    }
+
+
 
 
     public UserResponse createUser(UserCreationRequest request) {
@@ -132,6 +158,26 @@ public class UserService {
         return userRepository.findAll().stream()
                 .map(userMapper::toUserResponse)
                 .toList();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserDTO> getUsersVersion1() {
+        List<Object[]> flatResult = userRepository.findUserWithRoleFlat();
+
+        Map<String, UserDTO> dtoMap = new LinkedHashMap<>();
+
+        for (Object[] row : flatResult) {
+            String id = (String) row[0];
+            String username = (String) row[1];
+            String email = (String) row[2];
+            String role = (String) row[3];
+
+            dtoMap.computeIfAbsent(id, k ->
+                    new UserDTO(id, username, email, new ArrayList<>())
+            ).roles().add(role);
+        }
+
+        return new ArrayList<>(dtoMap.values());
     }
 
     @PreAuthorize("hasRole('ADMIN')")

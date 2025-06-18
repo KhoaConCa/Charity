@@ -1,5 +1,7 @@
 package com.tuandanh.profileService.service;
 
+import com.tuandanh.event.dto.FileMetadataConfirmRequest;
+import com.tuandanh.profileService.dto.request.AvatarUploadConfirmRequest;
 import com.tuandanh.profileService.dto.request.ProfileCreationRequest;
 import com.tuandanh.profileService.dto.request.ProfileUpdateRequest;
 import com.tuandanh.profileService.dto.request.UploadFileRequest;
@@ -19,6 +21,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,6 +50,18 @@ public class UserProfileService {
     S3Service s3Service;
     RedisService redisService;
     FileClient fileClient;
+    KafkaTemplate<String, FileMetadataConfirmRequest> kafkaTemplate;
+
+    // service/ProfileService.java
+    public List<ProfileResponse> getProfilesByUserIds(List<String> userIds) {
+        List<UserProfile> profiles = userProfileRepository.findByUserIdIn(userIds);
+        return profiles.stream().map(userProfileMapper::toProfileResponse).toList();
+    }
+
+
+    public List<UserProfile> searchProfilesByUsername(String username) {
+        return userProfileRepository.findByUsernameContaining(username);
+    }
 
     public String getActiveProfile(String userId){
         return redisService.getActiveProfile(userId);
@@ -67,6 +85,36 @@ public class UserProfileService {
         Jwt jwt = (Jwt) authentication.getPrincipal();
         String USER_ID = "userId";
         return jwt.getClaim(USER_ID);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN') or @userProfileService.isProfileOwner(#profileId, authentication)")
+    public void updateAvatarVersion2(String profileId, AvatarUploadConfirmRequest avatarUploadConfirmRequest) {
+        // Validate file URL là của S3 và đúng định dạng
+        if (!avatarUploadConfirmRequest.getFileUrl().contains(".s3.amazonaws.com")) {
+            throw new AppException(ErrorCode.INVALID_URL_AWS3);
+        }
+
+        // Cập nhật avatar URL vào hồ sơ người dùng
+        UserProfile profile = userProfileRepository.findByProfileId(profileId)
+                        .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+
+        profile.setAvatarUrl(avatarUploadConfirmRequest.getFileUrl());
+        userProfileRepository.save(profile);
+
+        String fileUrl = avatarUploadConfirmRequest.getFileUrl();
+
+        FileMetadataConfirmRequest event = new FileMetadataConfirmRequest(
+                fileUrl.substring(fileUrl.lastIndexOf("/") + 1), // fileName
+                fileUrl,
+                FileType.AVATAR,
+                profileId,
+                null,
+                "image/jpeg", // nếu bạn có
+                LocalDateTime.now()
+        );
+
+        kafkaTemplate.send(profile.getProfileId(), event);
     }
 
 
@@ -96,6 +144,68 @@ public class UserProfileService {
 
         return userProfileMapper.toProfileResponse(userProfileRepository.save(userProfile));
     }
+
+    @Transactional
+    public ProfileResponse createProfileVersion1(ProfileCreationRequest request, AvatarUploadConfirmRequest avatarConfirm) {
+        // 1. Validate avatar URL nếu có
+        if (avatarConfirm != null && avatarConfirm.getFileUrl() != null) {
+            validateS3Url(avatarConfirm.getFileUrl());
+        }
+
+        // 2. Tạo profile từ request
+        UserProfile profile = userProfileMapper.toUserProfile(request);
+
+        // 3. Gán avatar nếu có
+        if (avatarConfirm != null && avatarConfirm.getFileUrl() != null) {
+            profile.setAvatarUrl(avatarConfirm.getFileUrl());
+        }
+
+        // 4. Lưu profile
+        userProfileRepository.save(profile);
+
+        // 5. Gửi Kafka event để lưu metadata file (nếu có)
+        if (avatarConfirm != null && avatarConfirm.getFileUrl() != null) {
+            kafkaTemplate.send("media.file.metadata", new FileMetadataConfirmRequest());
+        }
+
+        return userProfileMapper.toProfileResponse(profile);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN') or @userProfileService.isProfileOwner(#profileId, authentication)")
+    public ProfileResponse updateProfileVersion1(String profileId, ProfileUpdateRequest request, AvatarUploadConfirmRequest avatarConfirm) {
+        // 1. Validate avatar URL nếu có
+        if (avatarConfirm != null && avatarConfirm.getFileUrl() != null) {
+            validateS3Url(avatarConfirm.getFileUrl());
+        }
+
+        // 2. Tìm user
+        UserProfile profile = userProfileRepository.findById(profileId)
+                .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_EXISTED));
+
+        // 3. Gán avatar nếu có
+        if (avatarConfirm != null && avatarConfirm.getFileUrl() != null) {
+            profile.setAvatarUrl(avatarConfirm.getFileUrl());
+        }
+
+        // 4. Update các field khác
+        userProfileMapper.updateUserProfile(profile, request);
+        userProfileRepository.save(profile);
+
+        // 5. Gửi Kafka metadata
+        if (avatarConfirm != null && avatarConfirm.getFileUrl() != null) {
+            kafkaTemplate.send("media.file.metadata", new FileMetadataConfirmRequest());
+        }
+
+        return userProfileMapper.toProfileResponse(profile);
+    }
+
+    private void validateS3Url(String fileUrl) {
+        if (!fileUrl.contains(".s3.amazonaws.com")) {
+            throw new AppException(ErrorCode.INVALID_URL_AWS3);
+        }
+    }
+
 
     @Transactional
     public ProfileResponse createProfile(ProfileCreationRequest profileCreationRequest, MultipartFile avatarFile) {

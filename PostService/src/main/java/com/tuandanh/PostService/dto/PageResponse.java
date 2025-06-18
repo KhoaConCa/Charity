@@ -20,4 +20,5 @@ public class PageResponse<T> {
 
     @Builder.Default
     List<T> data = Collections.emptyList();
+
 }

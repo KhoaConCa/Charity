@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,21 @@ import java.util.List;
 @Tag(name = "User Profile Controller", description = "Quản lý hồ sơ người dùng")
 public class UserProfileController {
     UserProfileService userProfileService;
+
+    @PostMapping("/batch")
+    public List<ProfileResponse> getProfilesByUserIds(@RequestBody List<String> userIds) {
+        return userProfileService.getProfilesByUserIds(userIds);
+    }
+
+    @GetMapping("/searchProfile")
+    public ApiResponse<List<UserProfile>> searchProfile(@RequestParam String username){
+        List<UserProfile> profiles = userProfileService.searchProfilesByUsername(username);
+
+        return ApiResponse.<List<UserProfile>>builder()
+
+                .result(profiles)
+                .build();
+    }
 
     @Operation(summary = "Lấy  hồ sơ hoạt động", description = "API lấy  hồ sơ đang hoạt động của người dùng")
     @GetMapping("/get-active-profile/{userId}")

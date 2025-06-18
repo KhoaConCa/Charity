@@ -1,5 +1,6 @@
 package com.tuandanh.identityService.service;
 
+import com.tuandanh.identityService.dto.RoleDTO;
 import com.tuandanh.identityService.dto.request.RoleRequest;
 import com.tuandanh.identityService.dto.response.RoleResponse;
 import com.tuandanh.identityService.mapper.RoleMapper;
@@ -11,8 +12,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +36,25 @@ public class RoleService {
     public List<RoleResponse> getAll() {
         return roleRepository.findAll().stream().map(roleMapper::toRoleResponse).toList();
     }
+
+    public List<RoleDTO> getAllVersion1() {
+        List<Object[]> flat = roleRepository.findRoleWithPermissionsFlat();
+
+        Map<String, RoleDTO> map = new LinkedHashMap<>();
+
+        for (Object[] row : flat) {
+            String name = (String) row[0];
+            String description = (String) row[1];
+            String permission = (String) row[2];
+
+            map.computeIfAbsent(name, n ->
+                    new RoleDTO(name, description, new ArrayList<>())
+            ).permissions().add(permission);
+        }
+
+        return new ArrayList<>(map.values());
+    }
+
 
     public void delete(String role) {
         roleRepository.deleteById(role);

@@ -71,7 +71,7 @@ public class ReactionService {
             return reactionMapper.toReactionResponse(saveReaction.apply(newReaction));
         }
 
-        if (existingReaction.getReactionType() == newType) {
+        if (existingReaction.getReactionType() == newType && existingReaction.getProfileId().equals(profileId)) {
             deleteReaction.accept(existingReaction);
             return ReactionResponse.builder()
                     .postId(targetId)

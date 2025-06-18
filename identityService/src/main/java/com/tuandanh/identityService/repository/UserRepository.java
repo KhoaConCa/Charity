@@ -3,8 +3,10 @@ package com.tuandanh.identityService.repository;
 import com.tuandanh.identityService.entity.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,4 +18,11 @@ public interface UserRepository extends JpaRepository<User, String> {
     @EntityGraph(attributePaths = {"roles", "roles.permissions"})
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
+    @Query("""
+    SELECT u.id, u.username, u.email, r.name
+    FROM User u
+    JOIN u.roles r
+    """)
+    List<Object[]> findUserWithRoleFlat(); // mỗi dòng = 1 role/user
+
 }
